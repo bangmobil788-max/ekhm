@@ -1,0 +1,3464 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>AbsenSekolah · Web Siswa v1.0 Beta</title>
+    
+    <!-- ============================================================
+         CDN LIBRARY
+         ============================================================ -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
+    
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <!-- CryptoJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    
+    <style>
+        /* ============================================================
+           CSS STYLING LENGKAP - SIDEBAR KIRI
+           ============================================================ */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, system-ui, sans-serif; }
+        
+        :root {
+            --bg: #f0f4f9;
+            --bg-card: #ffffff;
+            --bg-hover: #e8edf4;
+            --text: #0b1e33;
+            --text-secondary: #2a4b6e;
+            --primary: #1a3a6b;
+            --primary-light: #2a5a8a;
+            --primary-dark: #0f2a4a;
+            --shadow: 0 2px 12px rgba(0,20,40,0.08);
+            --border: rgba(200,215,230,0.5);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --success: #27ae60;
+            --success-light: #d5f0e0;
+            --warning: #f39c12;
+            --warning-light: #fff1d6;
+            --danger: #e74c3c;
+            --danger-light: #ffe1de;
+            --info: #3498db;
+            --info-light: #dbeafe;
+            --sidebar-width: 270px;
+            --header-height: 64px;
+            --transition: 0.2s;
+        }
+        
+        .dark-mode {
+            --bg: #0d1b2a;
+            --bg-card: #1a2d45;
+            --bg-hover: #1a2d45;
+            --text: #e8edf3;
+            --text-secondary: #9bb8d9;
+            --primary: #3d7bb3;
+            --primary-light: #5a9ad4;
+            --primary-dark: #2a5a8a;
+            --shadow: 0 2px 12px rgba(0,0,0,0.3);
+            --border: rgba(60,90,120,0.3);
+        }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            transition: background 0.3s, color 0.3s;
+        }
+        
+        /* ============================================================
+           SIDEBAR KIRI
+           ============================================================ */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            padding: 0;
+            overflow-y: auto;
+            z-index: 100;
+            transition: transform 0.3s ease, background 0.3s, border 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar .logo {
+            padding: 16px 18px 14px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .sidebar .logo i {
+            font-size: 1.6rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 8px;
+            border-radius: var(--radius-sm);
+        }
+        .sidebar .logo h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .sidebar .logo h1 span { color: var(--primary-light); font-weight: 300; }
+        .sidebar .logo small {
+            font-size: 0.5rem;
+            background: var(--primary);
+            color: white;
+            padding: 1px 8px;
+            border-radius: 40px;
+            margin-left: 4px;
+        }
+        
+        .sidebar .user-info {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .sidebar .user-info .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            overflow: hidden;
+        }
+        .sidebar .user-info .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .sidebar .user-info .name { font-weight: 600; font-size: 0.9rem; }
+        .sidebar .user-info .role { font-size: 0.75rem; color: var(--text-secondary); }
+        .sidebar .user-info .status {
+            font-size: 0.65rem;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 2px;
+        }
+        .sidebar .user-info .status .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            display: inline-block;
+        }
+        
+        .sidebar .menu-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 6px 0 10px;
+        }
+        .sidebar .menu-label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            padding: 6px 18px 4px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .sidebar .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 7px 18px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.1s;
+            border-left: 3px solid transparent;
+        }
+        .sidebar .menu-item:hover {
+            background: var(--bg-hover);
+            color: var(--text);
+        }
+        .sidebar .menu-item.active {
+            background: var(--bg-hover);
+            color: var(--primary);
+            border-left-color: var(--primary);
+            font-weight: 600;
+        }
+        .sidebar .menu-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 1rem;
+        }
+        .sidebar .menu-item .badge {
+            margin-left: auto;
+            background: var(--danger);
+            color: white;
+            font-size: 0.55rem;
+            padding: 1px 8px;
+            border-radius: 40px;
+        }
+        .sidebar .menu-item .badge.warning { background: var(--warning); }
+        .sidebar .menu-item .badge.success { background: var(--success); }
+        
+        .sidebar .logout-area {
+            border-top: 1px solid var(--border);
+            padding: 6px 0 10px;
+            flex-shrink: 0;
+            margin-top: auto;
+        }
+        .sidebar .logout-area .menu-item {
+            color: var(--danger);
+        }
+        .sidebar .logout-area .menu-item:hover {
+            background: var(--danger-light);
+        }
+        
+        /* ============================================================
+           SIDEBAR TOGGLE (MOBILE)
+           ============================================================ */
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 101;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 7px 11px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text);
+        }
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 99;
+        }
+        .sidebar-overlay.active { display: block; }
+        
+        /* ============================================================
+           MAIN CONTENT
+           ============================================================ */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 18px 26px 30px;
+            min-height: 100vh;
+            transition: margin-left 0.3s;
+        }
+        
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .main-header .greeting h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        .main-header .greeting p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        .main-header .actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .main-header .actions .btn-icon {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 60px;
+            padding: 5px 12px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.1s;
+        }
+        .main-header .actions .btn-icon:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            background: var(--bg-card);
+            padding: 3px 12px;
+            border-radius: 60px;
+            border: 1px solid var(--border);
+        }
+        .sync-status .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .sync-status .dot.online { background: var(--success); }
+        .sync-status .dot.offline { background: var(--danger); }
+        .sync-status .dot.syncing {
+            background: var(--warning);
+            animation: pulse-dot 0.5s infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        /* ============================================================
+           CARDS & STATS
+           ============================================================ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            transition: 0.1s;
+            position: relative;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        .stat-card .label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .stat-card .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 2px 0 1px;
+        }
+        .stat-card .icon {
+            position: absolute;
+            right: 12px;
+            top: 12px;
+            font-size: 1.8rem;
+            opacity: 0.12;
+            color: var(--primary);
+        }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        @media (max-width: 900px) {
+            .card-grid { grid-template-columns: 1fr; }
+        }
+        
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 14px 16px 16px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+        .card .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .card .card-header h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .card .card-header h3 i {
+            color: var(--primary-light);
+        }
+        
+        /* ============================================================
+           ITEM ROW
+           ============================================================ */
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 10px 5px 14px;
+            margin-bottom: 3px;
+            background: var(--bg);
+            border-radius: 60px;
+            border: 1px solid transparent;
+            transition: 0.1s;
+        }
+        .item-row:hover {
+            border-color: var(--border);
+            transform: translateX(2px);
+        }
+        .item-row .name {
+            font-weight: 500;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .item-row .name i { color: var(--primary-light); width: 16px; }
+        
+        /* ============================================================
+           STATUS BADGE
+           ============================================================ */
+        .status-badge {
+            font-size: 0.6rem;
+            padding: 2px 10px;
+            border-radius: 40px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .status-badge.hadir { background: var(--success-light); color: #0b5e3b; }
+        .status-badge.izin { background: var(--info-light); color: #1f509e; }
+        .status-badge.sakit { background: var(--warning-light); color: #a8681a; }
+        .status-badge.alpa { background: var(--danger-light); color: #b13b30; }
+        .status-badge.terlambat { background: #f0e6d0; color: #7a6a3a; }
+        .status-badge.pending { background: var(--warning-light); color: #a8681a; }
+        .status-badge.approved { background: var(--success-light); color: #0b5e3b; }
+        .status-badge.rejected { background: var(--danger-light); color: #b13b30; }
+        
+        .verif-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 14px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+        .verif-status.pending { background: #fff1d6; color: #a8681a; }
+        .verif-status.approved { background: #d5f0e0; color: #0b5e3b; }
+        .verif-status.rejected { background: #ffe1de; color: #b13b30; }
+        
+        /* ============================================================
+           QR CONTAINER
+           ============================================================ */
+        .qr-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            background: white;
+            border-radius: var(--radius-sm);
+            min-height: 160px;
+            flex-direction: column;
+        }
+        .qr-container canvas {
+            border-radius: 8px;
+        }
+        
+        /* ============================================================
+           QR SCAN AREA
+           ============================================================ */
+        .qr-scan-container {
+            text-align: center;
+            padding: 20px;
+            background: var(--bg-card);
+            border-radius: var(--radius-sm);
+            border: 2px dashed var(--border);
+        }
+        .qr-scan-container .big-icon {
+            font-size: 4rem;
+            color: var(--primary-light);
+            opacity: 0.5;
+        }
+        
+        /* ============================================================
+           PENGUMUMAN ITEM
+           ============================================================ */
+        .pengumuman-item {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .pengumuman-item:last-child { border-bottom: none; }
+        .pengumuman-item .judul {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .pengumuman-item .isi {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin: 4px 0;
+        }
+        .pengumuman-item .meta {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        /* ============================================================
+           CHAT MESSAGE
+           ============================================================ */
+        .chat-container {
+            max-height: 350px;
+            overflow-y: auto;
+            padding: 10px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            margin-top: 8px;
+        }
+        .chat-message {
+            padding: 8px 14px;
+            margin-bottom: 6px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+        }
+        .chat-message .sender {
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        .chat-message .time {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            float: right;
+        }
+        .chat-message .msg {
+            font-size: 0.85rem;
+            margin-top: 2px;
+        }
+        
+        /* ============================================================
+           PROFIL SEKOLAH
+           ============================================================ */
+        .sekolah-photo {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+        .sekolah-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .sekolah-gallery img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            transition: 0.2s;
+            cursor: pointer;
+        }
+        .sekolah-gallery img:hover {
+            transform: scale(1.03);
+            box-shadow: var(--shadow);
+        }
+        .sekolah-video {
+            width: 100%;
+            aspect-ratio: 16/9;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            margin-top: 8px;
+        }
+        .visi-misi {
+            background: var(--bg);
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            margin-top: 8px;
+        }
+        .visi-misi h4 {
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+        .visi-misi p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        /* ============================================================
+           BUTTONS
+           ============================================================ */
+        .btn {
+            padding: 5px 12px;
+            border-radius: 60px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: 0.08s;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 4px 16px rgba(26,58,107,0.25);
+        }
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        .btn-success:hover { background: #2ecc71; }
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        .btn-warning:hover { background: #e67e22; }
+        .btn-google {
+            background: #4285f4;
+            color: white;
+        }
+        .btn-google:hover { background: #357ae8; }
+        .btn-sm {
+            padding: 2px 8px;
+            font-size: 0.65rem;
+        }
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+        
+        /* ============================================================
+           FORM
+           ============================================================ */
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-bottom: 3px;
+            color: var(--text-secondary);
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 8px 14px;
+            border-radius: 60px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text);
+            font-size: 0.85rem;
+            transition: 0.15s;
+        }
+        .form-group textarea {
+            border-radius: 12px;
+            min-height: 60px;
+            resize: vertical;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: 2px solid var(--primary-light);
+            outline-offset: 2px;
+        }
+        .form-group .photo-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--border);
+            display: block;
+            margin: 6px auto;
+        }
+        .form-group input[type="file"] {
+            padding: 6px;
+            border-radius: 12px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+        
+        /* ============================================================
+           TOAST
+           ============================================================ */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 60px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            font-weight: 500;
+            z-index: 999;
+            animation: slideUp 0.3s ease;
+            max-width: 90%;
+        }
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+        .toast.warning { background: var(--warning); }
+        .toast.sync { background: var(--info); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        /* ============================================================
+           MODAL
+           ============================================================ */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 24px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+        .modal .close-modal {
+            float: right;
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+        .modal .close-modal:hover { color: var(--danger); }
+        
+        /* ============================================================
+           LOGIN
+           ============================================================ */
+        #loginScreen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: var(--bg);
+            width: 100%;
+        }
+        .login-box {
+            background: var(--bg-card);
+            padding: 36px 30px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid var(--border);
+        }
+        .login-box .login-logo {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .login-box .login-logo i {
+            font-size: 2.8rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 14px;
+            border-radius: 50%;
+        }
+        .login-box h2 {
+            text-align: center;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+        .login-box p.sub {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+        }
+        .login-box .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 10px 0;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+        .login-box .divider::before,
+        .login-box .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border);
+        }
+        .login-box .divider::before { margin-right: 10px; }
+        .login-box .divider::after { margin-left: 10px; }
+        .login-box input,
+        .login-box select {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 60px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        .login-box input:focus,
+        .login-box select:focus {
+            outline: 2px solid var(--primary-light);
+            outline-offset: 2px;
+        }
+        .login-box .btn {
+            width: 100%;
+            justify-content: center;
+            padding: 10px;
+            font-size: 0.95rem;
+        }
+        .login-box .password-hint {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            text-align: center;
+        }
+        .login-box .firebase-info {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 6px;
+            padding: 6px;
+            border-radius: 8px;
+            background: var(--bg);
+        }
+        .login-box .firebase-info .online { color: var(--success); }
+        .login-box .firebase-info .offline { color: var(--danger); }
+        
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .sidebar-overlay.active {
+                display: block;
+            }
+            .sidebar-toggle {
+                display: block;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 52px 10px 14px;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            .main-header .greeting h2 {
+                font-size: 1rem;
+            }
+            .main-header .actions .btn-icon span {
+                display: none;
+            }
+            .stat-card .value {
+                font-size: 1.2rem;
+            }
+            .stat-card .icon {
+                display: none;
+            }
+            .sekolah-gallery {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 6px;
+            }
+            .stat-card {
+                padding: 8px 10px;
+            }
+            .stat-card .value {
+                font-size: 1rem;
+            }
+            .card {
+                padding: 10px 12px;
+            }
+            .sekolah-gallery {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            }
+            .modal {
+                padding: 16px;
+            }
+        }
+        
+        .hidden { display: none !important; }
+        .loading-spinner {
+            text-align: center;
+            padding: 30px;
+        }
+        .loading-spinner i {
+            font-size: 2rem;
+            color: var(--primary-light);
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0); }
+            100% { transform: rotate(360); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================
+         SIDEBAR KIRI
+         ============================================================ -->
+    <div class="sidebar" id="sidebar">
+        <!-- LOGO -->
+        <div class="logo">
+            <i class="fas fa-graduation-cap"></i>
+            <div>
+                <h1>Absen<span>Siswa</span></h1>
+                <small>v1.0 Beta</small>
+            </div>
+        </div>
+        
+        <!-- USER INFO -->
+        <div class="user-info" id="sidebarUser">
+            <div class="avatar" id="sidebarAvatar">S</div>
+            <div class="name" id="sidebarName">Siswa</div>
+            <div class="role" id="sidebarRole">Siswa</div>
+            <div class="status"><span class="dot"></span> Online</div>
+        </div>
+        
+        <!-- MENU -->
+        <div class="menu-scroll">
+            <div class="menu-label">Menu Utama</div>
+            <div class="menu-item active" data-tab="dashboard"><i class="fas fa-chart-line"></i> Dashboard</div>
+            <div class="menu-item" data-tab="absen"><i class="fas fa-clipboard-check"></i> Absen Saya</div>
+            <div class="menu-item" data-tab="scanqr"><i class="fas fa-qrcode"></i> Scan QR <span class="badge warning" id="qrBadge">Aktif</span></div>
+            <div class="menu-item" data-tab="riwayat"><i class="fas fa-history"></i> Riwayat</div>
+            <div class="menu-item" data-tab="daftar"><i class="fas fa-user-plus"></i> Daftar <span class="badge warning" id="daftarBadge">⏳</span></div>
+            <div class="menu-item" data-tab="pengumuman"><i class="fas fa-bullhorn"></i> Pengumuman <span class="badge" id="pengumumanBadge">0</span></div>
+            <div class="menu-item" data-tab="catatan"><i class="fas fa-sticky-note"></i> Catatan Saya <span class="badge" id="catatanBadge">0</span></div>
+            <div class="menu-item" data-tab="generateqr"><i class="fas fa-qrcode"></i> Generate QR</div>
+            
+            <div class="menu-label">Pengaturan</div>
+            <div class="menu-item" data-tab="profil"><i class="fas fa-user"></i> Profil Saya</div>
+            <div class="menu-item" data-tab="gantipassword"><i class="fas fa-key"></i> Ganti Password</div>
+            <div class="menu-item" data-tab="profilsekolah"><i class="fas fa-school"></i> Profil Sekolah</div>
+            <div class="menu-item" data-tab="tentang"><i class="fas fa-info-circle"></i> Tentang Aplikasi</div>
+        </div>
+        
+        <!-- LOGOUT -->
+        <div class="logout-area">
+            <div class="menu-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Keluar</div>
+        </div>
+    </div>
+    
+    <!-- ============================================================
+         SIDEBAR OVERLAY & TOGGLE (MOBILE)
+         ============================================================ -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    
+    <!-- ============================================================
+         MAIN CONTENT
+         ============================================================ -->
+    <div class="main-content" id="mainContent">
+        
+        <!-- HEADER -->
+        <div class="main-header">
+            <div class="greeting">
+                <h2 id="greetingTitle">Dashboard</h2>
+                <p id="greetingSub">Selamat datang, <span id="greetingName">Siswa</span></p>
+            </div>
+            <div class="actions">
+                <div class="sync-status" id="syncStatus">
+                    <span class="dot" id="syncDot"></span>
+                    <span id="syncText">Sync</span>
+                </div>
+                <button class="btn-icon" id="darkModeToggle"><i class="fas fa-moon"></i> <span>Gelap</span></button>
+                <button class="btn-icon" id="refreshBtn"><i class="fas fa-sync"></i> <span>Refresh</span></button>
+            </div>
+        </div>
+        
+        <!-- VIEW CONTAINER -->
+        <div id="viewContainer">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner"></i>
+                <p style="margin-top:10px;color:var(--text-secondary);">Memuat data...</p>
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- ============================================================
+         LOGIN SCREEN
+         ============================================================ -->
+    <div id="loginScreen" class="hidden">
+        <div class="login-box">
+            <div class="login-logo"><i class="fas fa-graduation-cap"></i></div>
+            <h2>AbsenSekolah</h2>
+            <p class="sub">Web Siswa v1.0 Beta<br><span style="font-size:0.7rem;color:var(--text-secondary);">🔐 Login dengan Username & Password</span></p>
+            
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> Username</label>
+                <input type="text" id="loginUsername" placeholder="Masukkan username" autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> Password</label>
+                <input type="password" id="loginPassword" placeholder="Masukkan password" autocomplete="current-password">
+            </div>
+            <button class="btn btn-primary btn-block" id="loginBtn">
+                <i class="fas fa-arrow-right-to-bracket"></i> Login
+            </button>
+            
+            <div class="divider">atau</div>
+            
+            <button class="btn btn-google btn-block" id="googleRegisterBtn">
+                <i class="fab fa-google"></i> Daftar dengan Google
+            </button>
+            
+            <div class="password-hint">
+                <i class="fas fa-info-circle"></i> Belum punya akun? Daftar dengan Google atau minta admin
+            </div>
+            <div class="firebase-info" id="firebaseStatus">
+                <i class="fas fa-circle"></i> <span id="firebaseStatusText">Menghubungkan ke Firebase...</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ============================================================
+         MODALS
+         ============================================================ -->
+    
+    <!-- Student Detail Modal -->
+    <div id="studentModal" class="modal-overlay hidden">
+        <div class="modal">
+            <button class="close-modal" id="closeStudentModal">&times;</button>
+            <div id="studentModalContent"></div>
+        </div>
+    </div>
+    
+    <!-- Catatan Modal -->
+    <div id="catatanModal" class="modal-overlay hidden">
+        <div class="modal">
+            <button class="close-modal" id="closeCatatanModal">&times;</button>
+            <h3 style="margin-bottom:10px;"><i class="fas fa-sticky-note"></i> Catatan Saya</h3>
+            <div id="catatanListSaya" style="max-height:350px;overflow-y:auto;"></div>
+        </div>
+    </div>
+    
+    <!-- Ganti Password Modal -->
+    <div id="gantiPasswordModal" class="modal-overlay hidden">
+        <div class="modal">
+            <button class="close-modal" id="closeGantiPasswordModal">&times;</button>
+            <h3 style="margin-bottom:10px;"><i class="fas fa-key"></i> Ganti Password</h3>
+            <div class="form-group">
+                <label>Password Lama</label>
+                <input type="password" id="oldPass" placeholder="Password lama">
+            </div>
+            <div class="form-group">
+                <label>Password Baru</label>
+                <input type="password" id="newPass" placeholder="Password baru (min 6 karakter)">
+            </div>
+            <div class="form-group">
+                <label>Konfirmasi Password Baru</label>
+                <input type="password" id="confirmPass" placeholder="Konfirmasi password baru">
+            </div>
+            <button class="btn btn-primary btn-block" id="savePassBtn"><i class="fas fa-save"></i> Simpan Password</button>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         JAVASCRIPT LENGKAP
+         ============================================================ -->
+    <script>
+        // ============================================================
+        // SECTION 1: FIREBASE CONFIG (SAMA DENGAN WEB UTAMA)
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAA5eMB8oGXi8KKTVZIFyaV4tF25Re1Qzk",
+            authDomain: "absen-sekolah-v2.firebaseapp.com",
+            databaseURL: "https://absen-sekolah-v2-default-rtdb.firebaseio.com",
+            projectId: "absen-sekolah-v2",
+            storageBucket: "absen-sekolah-v2.firebasestorage.app",
+            messagingSenderId: "21097833213",
+            appId: "1:21097833213:web:536e39ab01f00f82e9d494",
+            measurementId: "G-RS4KNW0JRD"
+        };
+        
+        // ============================================================
+        // SECTION 2: ENKRIPSI & HASH
+        // ============================================================
+        const ENCRYPTION_KEY = 'Ab3nS3k0l4h_V1_2026';
+        
+        function encryptData(plainText) {
+            try { return CryptoJS.AES.encrypt(plainText, ENCRYPTION_KEY).toString(); }
+            catch(e) { return plainText; }
+        }
+        
+        function decryptData(cipherText) {
+            try {
+                const bytes = CryptoJS.AES.decrypt(cipherText, ENCRYPTION_KEY);
+                return bytes.toString(CryptoJS.Enc.Utf8);
+            } catch(e) { return cipherText; }
+        }
+        
+        function hashPassword(password) {
+            try { return CryptoJS.SHA256(password + ENCRYPTION_KEY).toString(); }
+            catch(e) { return password; }
+        }
+        
+        // ============================================================
+        // SECTION 3: DATA MANAGEMENT
+        // ============================================================
+        const STORE_KEY = 'absenSekolah_v1_siswa';
+        let data = {};
+        let studentData = null;
+        let currentUser = null;
+        let firebaseDb = null;
+        let firebaseAuth = null;
+        let firebaseConnected = false;
+        let isRendering = false;
+        let renderTimeout = null;
+        let dataListener = null;
+        let authListener = null;
+        let qrGeneratedToday = null;
+        let qrCodeInstance = null;
+        
+        function getDefaultData() {
+            return {
+                version: '1.0-beta',
+                siswa: {},
+                verifikasi: {},
+                absensi: {},
+                catatan: {},
+                kelas: [],
+                students: {},
+                pengumuman: [],
+                guru: [],
+                logs: [],
+                profilSekolah: {
+                    nama: 'SMA Negeri 4 Depok',
+                    alamat: 'Jl. Raya Bogor KM 25, Depok',
+                    telepon: '(021) 1234567',
+                    email: 'info@sma4depok.sch.id',
+                    website: 'www.sma4depok.sch.id',
+                    foto: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&h=400&fit=crop',
+                    gallery: [
+                        'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&h=300&fit=crop',
+                        'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=400&h=300&fit=crop',
+                        'https://images.unsplash.com/photo-1580870069867-74c57ee2b9a4?w=400&h=300&fit=crop',
+                        'https://images.unsplash.com/photo-1523050854058-8df90110c7f1?w=400&h=300&fit=crop'
+                    ],
+                    video: 'https://www.youtube.com/embed/pMPnz2fCSFU',
+                    visi: 'Menciptakan generasi unggul, berkarakter, dan berdaya saing global',
+                    misi: [
+                        'Meningkatkan kualitas pembelajaran',
+                        'Membangun karakter siswa berbasis nilai-nilai Pancasila',
+                        'Mengembangkan potensi siswa di bidang akademik dan non-akademik'
+                    ],
+                    kepalaSekolah: 'Dr. H. Ahmad, M.Pd',
+                    akreditasi: 'A',
+                    tahunBerdiri: '1998'
+                },
+                currentGuru: 'Admin',
+                currentRole: 'admin',
+                currentKelas: 'k1',
+                currentMapel: 'Matematika',
+                tanggal: new Date().toISOString().split('T')[0],
+                semester: 'ganjil',
+                tanggalMulai: '2026-01-01',
+                tanggalSelesai: '2026-12-31'
+            };
+        }
+        
+        function loadDataFromLocal() {
+            try {
+                const encrypted = localStorage.getItem(STORE_KEY);
+                if (encrypted) {
+                    const decrypted = decryptData(encrypted);
+                    const parsed = JSON.parse(decrypted);
+                    const def = getDefaultData();
+                    for (let key in def) {
+                        if (!(key in parsed)) parsed[key] = def[key];
+                    }
+                    return parsed;
+                }
+            } catch (e) { console.warn('⚠️ Load data error:', e); }
+            return getDefaultData();
+        }
+        
+        function saveDataToLocal(dataToSave) {
+            try {
+                const json = JSON.stringify(dataToSave);
+                const encrypted = encryptData(json);
+                localStorage.setItem(STORE_KEY, encrypted);
+            } catch (e) { console.warn('⚠️ Save error:', e); }
+        }
+        
+        // ============================================================
+        // SECTION 4: FIREBASE INIT - MERGE BUKAN OVERWRITE!
+        // ============================================================
+        function initFirebase() {
+            try {
+                if (typeof firebase === 'undefined') {
+                    updateFirebaseStatus(false, '⚠️ Firebase SDK tidak tersedia');
+                    return false;
+                }
+                
+                let firebaseApp;
+                if (firebase.apps.length > 0) {
+                    firebaseApp = firebase.apps[0];
+                    firebaseDb = firebase.database();
+                    firebaseAuth = firebase.auth();
+                } else {
+                    firebaseApp = firebase.initializeApp(firebaseConfig);
+                    firebaseDb = firebase.database();
+                    firebaseAuth = firebase.auth();
+                }
+                
+                if (!firebaseDb) {
+                    updateFirebaseStatus(false, '⚠️ Gagal konek ke Firebase');
+                    return false;
+                }
+                
+                firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+                
+                if (authListener) firebaseAuth.offAuthStateChanged(authListener);
+                authListener = firebaseAuth.onAuthStateChanged((user) => {
+                    if (user) {
+                        currentUser = user;
+                        console.log('✅ User login:', user.displayName, user.email);
+                        loadStudentData(user);
+                        document.getElementById('loginScreen').classList.add('hidden');
+                        document.getElementById('mainContent').style.display = 'block';
+                        document.getElementById('sidebar').style.display = 'flex';
+                        scheduleRender();
+                    } else {
+                        currentUser = null;
+                        studentData = null;
+                        document.getElementById('loginScreen').classList.remove('hidden');
+                        document.getElementById('mainContent').style.display = 'none';
+                        document.getElementById('sidebar').style.display = 'none';
+                    }
+                });
+                
+                const connectedRef = firebaseDb.ref('.info/connected');
+                connectedRef.off();
+                connectedRef.on('value', (snap) => {
+                    firebaseConnected = snap.val() === true;
+                    updateFirebaseStatus(firebaseConnected, firebaseConnected ? '✅ Terhubung ke Firebase' : '⚠️ Offline');
+                    updateSyncStatus();
+                });
+                
+                // ✅ FIX: MERGE BUKAN OVERWRITE!
+                if (dataListener) firebaseDb.ref('sekolah/data').off('value', dataListener);
+                dataListener = firebaseDb.ref('sekolah/data').on('value', (snapshot) => {
+                    const remoteData = snapshot.val();
+                    if (remoteData && !isRendering) {
+                        const localData = loadDataFromLocal();
+                        let changed = false;
+                        const keys = ['students', 'verifikasi', 'absensi', 'kelas', 'pengumuman', 'catatan', 'guru', 'profilSekolah', 'siswa'];
+                        for (let key of keys) {
+                            if (remoteData[key] !== undefined && JSON.stringify(remoteData[key]) !== JSON.stringify(localData[key])) {
+                                localData[key] = remoteData[key];
+                                changed = true;
+                            }
+                        }
+                        if (changed) {
+                            saveDataToLocal(localData);
+                            data = loadDataFromLocal();
+                            if (currentUser) loadStudentData(currentUser);
+                            updateBadges();
+                            scheduleRender();
+                            toast('🔄 Data disinkronkan', 'sync');
+                        }
+                        updateSyncStatus();
+                    }
+                });
+                
+                return true;
+            } catch (e) {
+                console.error('❌ Firebase init error:', e);
+                updateFirebaseStatus(false, '⚠️ Firebase error: ' + e.message);
+                return false;
+            }
+        }
+        
+        function loadStudentData(user) {
+            try {
+                const students = data.students || {};
+                let found = null;
+                for (let key in students) {
+                    if (students[key].email === user.email) {
+                        found = { id: key, ...students[key] };
+                        break;
+                    }
+                }
+                
+                const verifikasi = data.verifikasi || {};
+                let verifData = null;
+                for (let key in verifikasi) {
+                    if (verifikasi[key].email === user.email) {
+                        verifData = { id: key, ...verifikasi[key] };
+                        break;
+                    }
+                }
+                
+                studentData = {
+                    user: user,
+                    student: found,
+                    verifikasi: verifData
+                };
+                
+                if (found) {
+                    updateSidebarUser(found);
+                } else if (verifData) {
+                    updateSidebarUser(verifData);
+                } else {
+                    updateSidebarUser({ name: 'Siswa', kelas: '-' });
+                }
+                updateBadges();
+            } catch (e) { console.warn('⚠️ loadStudentData error:', e); }
+        }
+        
+        function updateSidebarUser(userData) {
+            try {
+                const avatar = document.getElementById('sidebarAvatar');
+                const photoURL = userData?.photo || currentUser?.photoURL || '';
+                if (avatar) {
+                    if (photoURL) {
+                        avatar.innerHTML = `<img src="${photoURL}" alt="Foto">`;
+                    } else {
+                        avatar.textContent = getInitials(userData?.name || userData?.nama || 'Siswa');
+                    }
+                }
+                document.getElementById('sidebarName').textContent = userData?.name || userData?.nama || 'Siswa';
+                const kelas = userData?.kelas || userData?.kelas || '-';
+                document.getElementById('sidebarRole').textContent = `Siswa - ${kelas}`;
+            } catch (e) {}
+        }
+        
+        function updateBadges() {
+            try {
+                // Daftar badge
+                const daftarBadge = document.getElementById('daftarBadge');
+                if (daftarBadge) {
+                    if (studentData?.student?.verified) {
+                        daftarBadge.textContent = '✅';
+                        daftarBadge.className = 'badge success';
+                    } else if (studentData?.verifikasi?.status === 'pending') {
+                        daftarBadge.textContent = '⏳';
+                        daftarBadge.className = 'badge warning';
+                    } else if (studentData?.verifikasi?.status === 'rejected') {
+                        daftarBadge.textContent = '❌';
+                        daftarBadge.className = 'badge';
+                    } else {
+                        daftarBadge.textContent = '📝';
+                        daftarBadge.className = 'badge warning';
+                    }
+                }
+                
+                // Pengumuman badge
+                const pengumumanBadge = document.getElementById('pengumumanBadge');
+                if (pengumumanBadge && data.pengumuman) {
+                    const count = data.pengumuman.length;
+                    pengumumanBadge.textContent = count;
+                    pengumumanBadge.style.display = count > 0 ? 'inline' : 'none';
+                }
+                
+                // Catatan badge
+                const catatanBadge = document.getElementById('catatanBadge');
+                if (catatanBadge && studentData?.student) {
+                    const key = `catatan_${studentData.student.nama}`;
+                    const catatanData = data.catatan?.[key] || [];
+                    const count = catatanData.length;
+                    catatanBadge.textContent = count;
+                    catatanBadge.style.display = count > 0 ? 'inline' : 'none';
+                }
+                
+                // QR Badge
+                const qrBadge = document.getElementById('qrBadge');
+                if (qrBadge) {
+                    const today = new Date().toISOString().split('T')[0];
+                    const hasQR = data.absensi ? Object.keys(data.absensi).some(key => key.includes(today)) : false;
+                    if (hasQR) {
+                        qrBadge.textContent = '🔴 Aktif';
+                        qrBadge.className = 'badge warning';
+                    } else {
+                        qrBadge.textContent = '⏳';
+                        qrBadge.className = 'badge';
+                    }
+                }
+            } catch (e) { console.warn('⚠️ updateBadges error:', e); }
+        }
+        
+        function loginWithGoogle() {
+            try {
+                if (!firebaseAuth) {
+                    toast('⚠️ Firebase Auth tidak tersedia', 'error');
+                    return;
+                }
+                const provider = new firebase.auth.GoogleAuthProvider();
+                provider.setCustomParameters({ prompt: 'select_account' });
+                firebaseAuth.signInWithPopup(provider)
+                    .then((result) => {
+                        toast(`✅ Login berhasil! Selamat datang ${result.user.displayName}`, 'success');
+                    })
+                    .catch((error) => {
+                        if (error.code === 'auth/popup-closed-by-user') {
+                            toast('⚠️ Login dibatalkan', 'warning');
+                        } else {
+                            toast('⚠️ Gagal login: ' + error.message, 'error');
+                        }
+                    });
+            } catch (e) {
+                toast('⚠️ Gagal login dengan Google', 'error');
+            }
+        }
+        
+        function logout() {
+            try {
+                if (firebaseAuth && currentUser) {
+                    firebaseAuth.signOut().then(() => {
+                        toast('👋 Logout berhasil', 'info');
+                        document.getElementById('mainContent').style.display = 'none';
+                        document.getElementById('sidebar').style.display = 'none';
+                        document.getElementById('loginScreen').classList.remove('hidden');
+                    }).catch(() => forceLogout());
+                } else {
+                    forceLogout();
+                }
+            } catch (e) { forceLogout(); }
+        }
+        
+        function forceLogout() {
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('sidebar').style.display = 'none';
+            document.getElementById('loginScreen').classList.remove('hidden');
+            toast('👋 Logout berhasil', 'info');
+        }
+        
+        function updateFirebaseStatus(connected, message) {
+            try {
+                const statusText = document.getElementById('firebaseStatusText');
+                if (statusText) {
+                    statusText.textContent = message || (connected ? '✅ Terhubung ke Firebase' : '⚠️ Mode Offline');
+                }
+            } catch (e) {}
+        }
+        
+        function updateSyncStatus() {
+            try {
+                const dot = document.getElementById('syncDot');
+                const text = document.getElementById('syncText');
+                if (!dot || !text) return;
+                if (firebaseConnected) {
+                    dot.className = 'dot online';
+                    text.textContent = 'Online';
+                } else {
+                    dot.className = 'dot offline';
+                    text.textContent = 'Offline';
+                }
+            } catch (e) {}
+        }
+        
+        function syncDataToFirebase() {
+            if (!firebaseConnected || !firebaseDb) return;
+            try {
+                const nodes = ['students', 'verifikasi', 'absensi', 'kelas', 'pengumuman', 'catatan'];
+                nodes.forEach(node => {
+                    if (data[node] !== undefined) {
+                        firebaseDb.ref('sekolah/data/' + node).set(data[node]);
+                    }
+                });
+            } catch (e) { console.warn('⚠️ Sync error:', e); }
+        }
+        
+        function toast(msg, type = 'info') {
+            try {
+                const old = document.querySelector('.toast');
+                if (old) old.remove();
+                const div = document.createElement('div');
+                div.className = `toast ${type}`;
+                div.textContent = msg;
+                document.body.appendChild(div);
+                setTimeout(() => div.remove(), 3000);
+            } catch (e) {}
+        }
+        
+        function getInitials(name) {
+            try {
+                return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            } catch (e) { return 'S'; }
+        }
+        
+        function formatDate(dateStr) {
+            try {
+                const d = new Date(dateStr);
+                return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+            } catch (e) { return dateStr; }
+        }
+        
+        function formatTime(dateStr) {
+            try {
+                const d = new Date(dateStr);
+                return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            } catch (e) { return ''; }
+        }
+        
+        function getKelasNama(kelasId) {
+            try {
+                const k = data.kelas?.find(k => k.id === kelasId);
+                return k ? k.nama : kelasId;
+            } catch (e) { return kelasId; }
+        }
+        
+        function getKelasId(namaKelas) {
+            try {
+                const k = data.kelas?.find(k => k.nama === namaKelas);
+                return k ? k.id : null;
+            } catch (e) { return null; }
+        }
+        
+        function getAbsensiKey(kelasId, tanggal, mapel) {
+            return `${kelasId}_${tanggal}_${mapel}`;
+        }
+        
+        function saveData() {
+            try {
+                saveDataToLocal(data);
+                if (firebaseConnected) {
+                    clearTimeout(window._syncTimeout);
+                    window._syncTimeout = setTimeout(syncDataToFirebase, 300);
+                }
+            } catch (e) { console.warn('⚠️ Save error:', e); }
+        }
+        
+        function scheduleRender() {
+            if (renderTimeout) {
+                clearTimeout(renderTimeout);
+                renderTimeout = null;
+            }
+            renderTimeout = setTimeout(() => {
+                renderAll();
+            }, 100);
+        }
+        
+        // ============================================================
+        // SECTION 5: RENDER ENGINE
+        // ============================================================
+        function renderAll() {
+            if (isRendering) return;
+            isRendering = true;
+            try {
+                const activeTab = document.querySelector('.sidebar .menu-item.active');
+                const tabName = activeTab ? activeTab.dataset.tab : 'dashboard';
+                renderTab(tabName);
+                updateGreeting();
+                updateSyncStatus();
+                updateBadges();
+                if (currentUser) {
+                    const userData = studentData?.student || studentData?.verifikasi || { name: 'Siswa' };
+                    updateSidebarUser(userData);
+                }
+            } catch (e) {
+                console.error('❌ Render error:', e);
+                document.getElementById('viewContainer').innerHTML = `
+                    <div class="card">
+                        <h3><i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i> Error</h3>
+                        <p style="color:var(--text-secondary);">${e.message}</p>
+                        <button class="btn btn-primary" onclick="location.reload()">Refresh</button>
+                    </div>
+                `;
+            }
+            isRendering = false;
+        }
+        
+        function updateGreeting() {
+            try {
+                const now = new Date();
+                const hour = now.getHours();
+                let greet = 'Selamat pagi';
+                if (hour >= 12 && hour < 15) greet = 'Selamat siang';
+                else if (hour >= 15 && hour < 19) greet = 'Selamat sore';
+                else if (hour >= 19) greet = 'Selamat malam';
+                
+                const name = studentData?.student?.nama || studentData?.verifikasi?.nama || 'Siswa';
+                document.getElementById('greetingName').textContent = name;
+                document.getElementById('greetingSub').textContent = `${greet}, ${name}`;
+                
+                const activeTab = document.querySelector('.sidebar .menu-item.active');
+                if (activeTab) {
+                    document.getElementById('greetingTitle').textContent = activeTab.textContent.trim();
+                }
+            } catch (e) {}
+        }
+        
+        function renderTab(tabName) {
+            const container = document.getElementById('viewContainer');
+            if (!container) return;
+            try {
+                switch(tabName) {
+                    case 'dashboard': renderDashboard(container); break;
+                    case 'absen': renderAbsenSaya(container); break;
+                    case 'scanqr': renderScanQR(container); break;
+                    case 'riwayat': renderRiwayat(container); break;
+                    case 'daftar': renderDaftar(container); break;
+                    case 'pengumuman': renderPengumuman(container); break;
+                    case 'catatan': renderCatatanSaya(container); break;
+                    case 'generateqr': renderGenerateQR(container); break;
+                    case 'profil': renderProfil(container); break;
+                    case 'gantipassword': renderGantiPassword(container); break;
+                    case 'profilsekolah': renderProfilSekolah(container); break;
+                    case 'tentang': renderTentang(container); break;
+                    default: renderDashboard(container);
+                }
+            } catch (e) {
+                console.error('❌ renderTab error:', e);
+                container.innerHTML = `<div class="card"><h3>Error</h3><p>${e.message}</p></div>`;
+            }
+        }
+        
+        // ============================================================
+        // SECTION 6: DASHBOARD
+        // ============================================================
+        function renderDashboard(container) {
+            try {
+                const student = studentData?.student;
+                const verif = studentData?.verifikasi;
+                const name = student?.nama || verif?.nama || 'Siswa';
+                const kelas = student?.kelas || verif?.kelas || '-';
+                
+                let statusText = 'Belum Terdaftar';
+                let statusClass = 'pending';
+                let statusIcon = '⏳';
+                
+                if (student) {
+                    if (student.verified) {
+                        statusText = '✅ Terverifikasi';
+                        statusClass = 'approved';
+                        statusIcon = '✅';
+                    } else {
+                        statusText = '⏳ Menunggu Verifikasi';
+                        statusClass = 'pending';
+                        statusIcon = '⏳';
+                    }
+                } else if (verif) {
+                    if (verif.status === 'pending') {
+                        statusText = '⏳ Menunggu Verifikasi Admin';
+                        statusClass = 'pending';
+                        statusIcon = '⏳';
+                    } else if (verif.status === 'approved') {
+                        statusText = '✅ Terverifikasi';
+                        statusClass = 'approved';
+                        statusIcon = '✅';
+                    } else if (verif.status === 'rejected') {
+                        statusText = '❌ Ditolak';
+                        statusClass = 'rejected';
+                        statusIcon = '❌';
+                    }
+                }
+                
+                // Hitung absen
+                const absensi = data.absensi || {};
+                let totalHadir = 0;
+                let totalAbsen = 0;
+                let totalIzin = 0;
+                let totalSakit = 0;
+                let totalAlpa = 0;
+                let totalTerlambat = 0;
+                
+                if (student && student.nama) {
+                    for (let key in absensi) {
+                        const absenData = absensi[key];
+                        if (absenData && absenData[student.nama]) {
+                            totalAbsen++;
+                            const status = absenData[student.nama];
+                            if (status === 'hadir') totalHadir++;
+                            else if (status === 'izin') totalIzin++;
+                            else if (status === 'sakit') totalSakit++;
+                            else if (status === 'alpa') totalAlpa++;
+                            else if (status === 'terlambat') totalTerlambat++;
+                        }
+                    }
+                }
+                
+                const persenHadir = totalAbsen > 0 ? (totalHadir / totalAbsen * 100).toFixed(1) : 0;
+                const pengumumanCount = data.pengumuman?.length || 0;
+                
+                let html = `
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="label">Total Absen</span>
+                            <span class="value">${totalAbsen}</span>
+                            <span class="icon"><i class="fas fa-clipboard-check"></i></span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="label">Hadir</span>
+                            <span class="value" style="color:var(--success);">${totalHadir}</span>
+                            <span class="icon"><i class="fas fa-check-circle"></i></span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="label">Kehadiran</span>
+                            <span class="value" style="color:var(--primary);">${persenHadir}%</span>
+                            <span class="icon"><i class="fas fa-chart-line"></i></span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="label">Pengumuman</span>
+                            <span class="value">${pengumumanCount}</span>
+                            <span class="icon"><i class="fas fa-bullhorn"></i></span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-user"></i> Profil Saya</h3>
+                            </div>
+                            <div style="text-align:center;">
+                                <div class="avatar" style="width:80px;height:80px;border-radius:50%;margin:0 auto;background:linear-gradient(135deg,var(--primary),var(--primary-light));display:flex;align-items:center;justify-content:center;font-size:2.2rem;color:white;overflow:hidden;">
+                                    ${student?.photo ? `<img src="${student.photo}" style="width:100%;height:100%;object-fit:cover;">` : getInitials(name)}
+                                </div>
+                                <h3 style="margin-top:6px;">${name}</h3>
+                                <div class="verif-status ${statusClass}">${statusIcon} ${statusText}</div>
+                                <div style="margin-top:4px;font-size:0.85rem;color:var(--text-secondary);">${kelas}</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-chart-pie"></i> Status Kehadiran</h3>
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">
+                                <div style="background:var(--success-light);padding:6px;border-radius:var(--radius-sm);text-align:center;">
+                                    <div style="font-size:1.2rem;font-weight:700;color:var(--success);">${totalHadir}</div>
+                                    <div style="font-size:0.55rem;color:var(--success);">Hadir</div>
+                                </div>
+                                <div style="background:var(--info-light);padding:6px;border-radius:var(--radius-sm);text-align:center;">
+                                    <div style="font-size:1.2rem;font-weight:700;color:var(--info);">${totalIzin}</div>
+                                    <div style="font-size:0.55rem;color:var(--info);">Izin</div>
+                                </div>
+                                <div style="background:var(--warning-light);padding:6px;border-radius:var(--radius-sm);text-align:center;">
+                                    <div style="font-size:1.2rem;font-weight:700;color:var(--warning);">${totalSakit}</div>
+                                    <div style="font-size:0.55rem;color:var(--warning);">Sakit</div>
+                                </div>
+                                <div style="background:var(--danger-light);padding:6px;border-radius:var(--radius-sm);text-align:center;">
+                                    <div style="font-size:1.2rem;font-weight:700;color:var(--danger);">${totalAlpa}</div>
+                                    <div style="font-size:0.55rem;color:var(--danger);">Alpa</div>
+                                </div>
+                                <div style="background:var(--bg);padding:6px;border-radius:var(--radius-sm);text-align:center;">
+                                    <div style="font-size:1.2rem;font-weight:700;color:var(--warning);">${totalTerlambat}</div>
+                                    <div style="font-size:0.55rem;color:var(--text-secondary);">Terlambat</div>
+                                </div>
+                                <div style="background:var(--bg);padding:6px;border-radius:var(--radius-sm);text-align:center;">
+                                    <div style="font-size:1.2rem;font-weight:700;color:var(--primary);">${totalAbsen}</div>
+                                    <div style="font-size:0.55rem;color:var(--text-secondary);">Total</div>
+                                </div>
+                            </div>
+                            <div style="margin-top:6px;font-size:0.75rem;background:var(--bg-card);padding:4px 12px;border-radius:60px;text-align:center;">
+                                <i class="fas fa-percent"></i> Kehadiran: <strong>${persenHadir}%</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-bullhorn"></i> Pengumuman Terbaru</h3>
+                            <span class="btn-link" onclick="document.querySelector('[data-tab=\\'pengumuman\\']').click()" style="font-size:0.7rem;color:var(--primary-light);cursor:pointer;">Lihat Semua</span>
+                        </div>
+                        ${(data.pengumuman || []).length === 0 ? '<p style="color:var(--text-secondary);text-align:center;padding:8px;font-size:0.8rem;">Belum ada pengumuman</p>' :
+                        (data.pengumuman || []).slice(-3).reverse().map(p => `
+                            <div style="padding:6px 0;border-bottom:1px solid var(--border);">
+                                <div style="font-weight:600;font-size:0.85rem;">📌 ${p.judul}</div>
+                                <div style="font-size:0.8rem;color:var(--text-secondary);">${p.isi}</div>
+                                <div style="font-size:0.6rem;color:var(--text-secondary);">${formatDate(p.createdAt)} · ${p.dibuatOleh || 'Admin'}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.innerHTML = html;
+            } catch (e) {
+                console.error('❌ renderDashboard error:', e);
+                container.innerHTML = `<div class="card"><h3>Error</h3><p>${e.message}</p></div>`;
+            }
+        }
+        
+        // ============================================================
+        // SECTION 7: ABSEN SAYA
+        // ============================================================
+        function renderAbsenSaya(container) {
+            try {
+                const student = studentData?.student;
+                if (!student) {
+                    container.innerHTML = `
+                        <div class="card">
+                            <h3><i class="fas fa-clipboard-check"></i> Absen Saya</h3>
+                            <p style="color:var(--text-secondary);font-size:0.85rem;">Silakan daftar terlebih dahulu untuk melihat absen.</p>
+                            <button class="btn btn-warning btn-block" onclick="document.querySelector('[data-tab=\\'daftar\\']').click()">
+                                <i class="fas fa-user-plus"></i> Daftar Sekarang
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const absensi = data.absensi || {};
+                const kelas = student.kelas || '';
+                const kelasId = getKelasId(kelas) || '';
+                let absenList = [];
+                
+                for (let key in absensi) {
+                    if (absensi[key] && absensi[key][student.nama]) {
+                        const parts = key.split('_');
+                        const kId = parts[0] || '';
+                        const tanggal = parts[1] || '';
+                        const mapel = parts[2] || 'Umum';
+                        if (kId === kelasId || kelas.includes(kelas)) {
+                            absenList.push({
+                                tanggal: tanggal,
+                                mapel: mapel,
+                                status: absensi[key][student.nama]
+                            });
+                        }
+                    }
+                }
+                
+                absenList.sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+                const total = absenList.length;
+                const hadir = absenList.filter(a => a.status === 'hadir').length;
+                const persen = total > 0 ? (hadir / total * 100).toFixed(1) : 0;
+                
+                let html = `
+                    <div class="card">
+                        <h3><i class="fas fa-clipboard-check"></i> Absen Saya</h3>
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+                            <div style="background:var(--bg-card);padding:8px;border-radius:var(--radius-sm);text-align:center;">
+                                <div style="font-size:1.4rem;font-weight:700;color:var(--info);">${total}</div>
+                                <div style="font-size:0.65rem;color:var(--text-secondary);">Total Absen</div>
+                            </div>
+                            <div style="background:var(--bg-card);padding:8px;border-radius:var(--radius-sm);text-align:center;">
+                                <div style="font-size:1.4rem;font-weight:700;color:var(--success);">${hadir}</div>
+                                <div style="font-size:0.65rem;color:var(--text-secondary);">Hadir</div>
+                            </div>
+                            <div style="background:var(--bg-card);padding:8px;border-radius:var(--radius-sm);text-align:center;">
+                                <div style="font-size:1.4rem;font-weight:700;color:var(--primary);">${persen}%</div>
+                                <div style="font-size:0.65rem;color:var(--text-secondary);">Kehadiran</div>
+                            </div>
+                        </div>
+                        <div style="max-height:350px;overflow-y:auto;">
+                `;
+                
+                if (absenList.length === 0) {
+                    html += `<p style="text-align:center;color:var(--text-secondary);padding:16px;font-size:0.85rem;">Belum ada data absen</p>`;
+                } else {
+                    absenList.slice(0, 50).forEach(a => {
+                        const label = {
+                            hadir: '✅ Hadir',
+                            sakit: '🤒 Sakit',
+                            izin: '📋 Izin',
+                            alpa: '❌ Alpa',
+                            terlambat: '⏰ Terlambat'
+                        } [a.status] || a.status;
+                        html += `
+                            <div class="item-row">
+                                <span class="name"><i class="fas fa-calendar"></i> ${formatDate(a.tanggal)}</span>
+                                <div>
+                                    <span style="font-size:0.65rem;color:var(--text-secondary);margin-right:6px;">${a.mapel}</span>
+                                    <span style="font-weight:600;font-size:0.8rem;">${label}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    if (absenList.length > 50) {
+                        html += `<p style="text-align:center;color:var(--text-secondary);font-size:0.7rem;padding:6px;">Menampilkan 50 dari ${absenList.length} data</p>`;
+                    }
+                }
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+                container.innerHTML = html;
+            } catch (e) {
+                console.error('❌ renderAbsenSaya error:', e);
+                container.innerHTML = `<div class="card"><h3>Error</h3><p>${e.message}</p></div>`;
+            }
+        }
+        
+        // ============================================================
+        // SECTION 8: SCAN QR
+        // ============================================================
+        function renderScanQR(container) {
+            try {
+                const student = studentData?.student;
+                if (!student || !student.verified) {
+                    container.innerHTML = `
+                        <div class="card">
+                            <h3><i class="fas fa-qrcode"></i> Scan QR</h3>
+                            <p style="color:var(--text-secondary);font-size:0.85rem;">
+                                ${!student ? 'Silakan daftar terlebih dahulu.' : 'Akun Anda belum diverifikasi oleh admin.'}
+                            </p>
+                            ${!student ? `<button class="btn btn-warning btn-block" onclick="document.querySelector('[data-tab=\\'daftar\\']').click()">
+                                <i class="fas fa-user-plus"></i> Daftar Sekarang
+                            </button>` : ''}
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const today = new Date().toISOString().split('T')[0];
+                const kelasId = getKelasId(student.kelas) || '';
+                const absensi = data.absensi || {};
+                let qrActive = false;
+                let qrInfo = '';
+                let hasAbsenToday = false;
+                
+                for (let key in absensi) {
+                    if (key.includes(kelasId) && key.includes(today)) {
+                        qrActive = true;
+                        const parts = key.split('_');
+                        const mapel = parts[2] || 'Umum';
+                        qrInfo = `${student.kelas} - ${mapel}`;
+                        if (absensi[key][student.nama] === 'hadir') {
+                            hasAbsenToday = true;
+                        }
+                        break;
+                    }
+                }
+                
+                let html = `
+                    <div class="card">
+                        <h3><i class="fas fa-qrcode"></i> Scan QR Code</h3>
+                        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:10px;">
+                            Arahkan kamera ke QR Code yang disediakan guru untuk absen.
+                            <br><small>QR berlaku untuk kelas dan mata pelajaran tertentu.</small>
+                        </p>
+                        
+                        <div id="scanStatus" style="margin-bottom:10px;">
+                            ${qrActive ? `
+                                <div style="background:var(--success-light);color:var(--success);padding:8px 14px;border-radius:var(--radius-sm);display:flex;align-items:center;gap:8px;">
+                                    <i class="fas fa-check-circle" style="font-size:1.2rem;"></i>
+                                    <div>
+                                        <strong>QR Aktif!</strong> untuk ${qrInfo}
+                                        ${hasAbsenToday ? '<br><span style="font-size:0.8rem;">✅ Anda sudah absen hari ini</span>' : ''}
+                                    </div>
+                                </div>
+                            ` : `
+                                <div style="background:var(--bg);padding:8px 14px;border-radius:var(--radius-sm);color:var(--text-secondary);">
+                                    <i class="fas fa-info-circle"></i> Belum ada QR aktif untuk kelas Anda hari ini
+                                </div>
+                            `}
+                        </div>
+                        
+                        <div class="qr-scan-container" id="scanArea">
+                            <div class="big-icon">
+                                <i class="fas fa-camera"></i>
+                            </div>
+                            <p style="margin:6px 0;font-weight:600;">Scanner QR Code</p>
+                            <p style="font-size:0.75rem;color:var(--text-secondary);">
+                                Masukkan kode QR dari guru atau scan dengan kamera
+                            </p>
+                            
+                            <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
+                                <input type="text" id="qrInput" placeholder="Masukkan kode QR" 
+                                       style="flex:1;min-width:140px;padding:6px 12px;border-radius:60px;border:1px solid var(--border);background:var(--bg);font-size:0.8rem;">
+                                <button class="btn btn-success" id="scanQrBtn">
+                                    <i class="fas fa-camera"></i> Scan
+                                </button>
+                            </div>
+                            
+                            <div style="margin-top:6px;">
+                                <button class="btn btn-primary" id="cameraScanBtn" style="width:100%;justify-content:center;">
+                                    <i class="fas fa-video"></i> Scan dengan Kamera
+                                </button>
+                            </div>
+                            
+                            <div id="qrResult" style="margin-top:10px;"></div>
+                        </div>
+                        
+                        <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px;">
+                            <h4 style="font-size:0.85rem;margin-bottom:6px;">
+                                <i class="fas fa-history"></i> Riwayat Scan Hari Ini
+                            </h4>
+                            <div id="riwayatScanHariIni" style="max-height:140px;overflow-y:auto;">
+                                <p style="font-size:0.75rem;color:var(--text-secondary);">Belum ada scan hari ini</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML = html;
+                
+                loadRiwayatScan();
+                
+                container.querySelector('#scanQrBtn')?.addEventListener('click', function() {
+                    const input = document.getElementById('qrInput');
+                    const qrData = input.value.trim();
+                    if (!qrData) {
+                        toast('⚠️ Masukkan kode QR terlebih dahulu', 'warning');
+                        return;
+                    }
+                    prosesScanQR(qrData);
+                });
+                
+                document.getElementById('qrInput')?.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        document.getElementById('scanQrBtn')?.click();
+                    }
+                });
+                
+                container.querySelector('#cameraScanBtn')?.addEventListener('click', function() {
+                    toast('📷 Kamera aktif, arahkan ke QR Code (simulasi)', 'info');
+                    setTimeout(() => {
+                        const studentKelas = studentData?.student?.kelas || '';
+                        let targetKelas = data.kelas?.find(k => k.nama === studentKelas);
+                        if (!targetKelas && data.kelas?.length > 0) {
+                            targetKelas = data.kelas[0];
+                        }
+                        if (!targetKelas) {
+                            toast('⚠️ Kelas tidak ditemukan', 'warning');
+                            return;
+                        }
+                        const randomMapel = targetKelas.mapel?.[0] || 'Umum';
+                        const today = new Date().toISOString().split('T')[0];
+                        const fakeQR = `${targetKelas.id}_${randomMapel}_${today}`;
+                        
+                        document.getElementById('qrInput').value = fakeQR;
+                        toast('📸 QR terdeteksi!', 'success');
+                        prosesScanQR(fakeQR);
+                    }, 2000);
+                });
+                
+                function loadRiwayatScan() {
+                    try {
+                        const container = document.getElementById('riwayatScanHariIni');
+                        if (!container) return;
+                        
+                        const student = studentData?.student;
+                        if (!student) {
+                            container.innerHTML = `<p style="font-size:0.75rem;color:var(--text-secondary);">Belum ada scan hari ini</p>`;
+                            return;
+                        }
+                        
+                        const today = new Date().toISOString().split('T')[0];
+                        const absensi = data.absensi || {};
+                        let scans = [];
+                        
+                        for (let key in absensi) {
+                            if (absensi[key] && absensi[key][student.nama] === 'hadir') {
+                                const parts = key.split('_');
+                                const kelasId = parts[0] || '';
+                                const tanggal = parts[1] || '';
+                                const mapel = parts[2] || 'Umum';
+                                if (tanggal === today) {
+                                    scans.push({
+                                        kelas: getKelasNama(kelasId),
+                                        mapel: mapel,
+                                        waktu: new Date().toLocaleTimeString('id-ID')
+                                    });
+                                }
+                            }
+                        }
+                        
+                        if (scans.length === 0) {
+                            container.innerHTML = `<p style="font-size:0.75rem;color:var(--text-secondary);">Belum ada scan hari ini</p>`;
+                        } else {
+                            container.innerHTML = scans.map(s => `
+                                <div class="item-row" style="margin-bottom:2px;">
+                                    <span class="name"><i class="fas fa-check-circle" style="color:var(--success);"></i> ${s.kelas} - ${s.mapel}</span>
+                                    <span style="font-size:0.65rem;color:var(--text-secondary);">${s.waktu}</span>
+                                </div>
+                            `).join('');
+                        }
+                    } catch (e) {}
+                }
+                
+                function prosesScanQR(qrData) {
+                    try {
+                        const resultDiv = document.getElementById('qrResult');
+                        const student = studentData?.student;
+                        
+                        if (!student) {
+                            resultDiv.innerHTML = `
+                                <div style="background:var(--danger);color:white;padding:10px;border-radius:8px;">
+                                    <i class="fas fa-times-circle"></i> Anda belum terdaftar sebagai siswa
+                                </div>
+                            `;
+                            return;
+                        }
+                        
+                        const parts = qrData.split('_');
+                        if (parts.length < 3) {
+                            resultDiv.innerHTML = `
+                                <div style="background:var(--danger);color:white;padding:10px;border-radius:8px;">
+                                    <i class="fas fa-times-circle"></i> Format QR tidak valid
+                                </div>
+                            `;
+                            return;
+                        }
+                        
+                        const [kelasId, mapel, tanggal] = parts;
+                        const kelasNama = getKelasNama(kelasId);
+                        const today = new Date().toISOString().split('T')[0];
+                        
+                        if (tanggal !== today) {
+                            resultDiv.innerHTML = `
+                                <div style="background:var(--danger);color:white;padding:10px;border-radius:8px;">
+                                    <i class="fas fa-times-circle"></i> QR Code ini sudah kadaluarsa!
+                                    <br><small>Hanya berlaku untuk tanggal ${formatDate(tanggal)}</small>
+                                </div>
+                            `;
+                            return;
+                        }
+                        
+                        const siswaKelas = data.siswa?.[kelasId] || [];
+                        if (!siswaKelas.includes(student.nama)) {
+                            resultDiv.innerHTML = `
+                                <div style="background:var(--danger);color:white;padding:10px;border-radius:8px;">
+                                    <i class="fas fa-times-circle"></i> Anda tidak terdaftar di kelas ${kelasNama}
+                                    <br><small>Kelas Anda: ${student.kelas || '-'}</small>
+                                </div>
+                            `;
+                            return;
+                        }
+                        
+                        const key = `${kelasId}_${tanggal}_${mapel}`;
+                        if (!data.absensi) data.absensi = {};
+                        if (!data.absensi[key]) {
+                            data.absensi[key] = {};
+                            const siswa = data.siswa?.[kelasId] || [];
+                            siswa.forEach(s => data.absensi[key][s] = 'hadir');
+                        }
+                        
+                        const currentStatus = data.absensi[key][student.nama];
+                        if (currentStatus === 'hadir') {
+                            resultDiv.innerHTML = `
+                                <div style="background:var(--warning);color:white;padding:10px;border-radius:8px;">
+                                    <i class="fas fa-check-circle"></i> Anda sudah absen hari ini!
+                                    <br><small>${formatDate(tanggal)} - ${kelasNama} - ${mapel}</small>
+                                </div>
+                            `;
+                            return;
+                        }
+                        
+                        data.absensi[key][student.nama] = 'hadir';
+                        
+                        if (firebaseDb) {
+                            firebaseDb.ref('sekolah/data/absensi/' + key + '/' + student.nama).set('hadir');
+                        }
+                        
+                        saveDataToLocal(data);
+                        saveData();
+                        
+                        resultDiv.innerHTML = `
+                            <div style="background:var(--success);color:white;padding:10px;border-radius:8px;">
+                                <i class="fas fa-check-circle"></i> ✅ Absen berhasil!
+                                <br><strong>${student.nama}</strong> - ${kelasNama} - ${mapel}
+                                <br><small>${formatDate(tanggal)} - ${new Date().toLocaleTimeString('id-ID')}</small>
+                            </div>
+                        `;
+                        
+                        toast('✅ Absen berhasil!', 'success');
+                        document.getElementById('qrInput').value = '';
+                        loadRiwayatScan();
+                        scheduleRender();
+                        
+                    } catch (e) {
+                        toast('⚠️ Gagal scan QR', 'error');
+                        console.error(e);
+                        document.getElementById('qrResult').innerHTML = `
+                            <div style="background:var(--danger);color:white;padding:10px;border-radius:8px;">
+                                <i class="fas fa-times-circle"></i> Terjadi kesalahan: ${e.message}
+                            </div>
+                        `;
+                    }
+                }
+                
+            } catch (e) {
+                console.error('❌ renderScanQR error:', e);
+                container.innerHTML = `<div class="card"><h3>Error</h3><p>${e.message}</p></div>`;
+            }
+        }
+        
+        // ============================================================
+        // SECTION 9: RIWAYAT
+        // ============================================================
+        function renderRiwayat(container) {
+            try {
+                const student = studentData?.student;
+                if (!student) {
+                    container.innerHTML = `
+                        <div class="card">
+                            <h3><i class="fas fa-history"></i> Riwayat</h3>
+                            <p style="color:var(--text-secondary);font-size:0.85rem;">Silakan daftar terlebih dahulu.</p>
+                            <button class="btn btn-warning btn-block" onclick="document.querySelector('[data-tab=\\'daftar\\']').click()">
+                                <i class="fas fa-user-plus"></i> Daftar Sekarang
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const absensi = data.absensi || {};
+                const kelas = student.kelas || '';
+                const kelasId = getKelasId(kelas) || '';
+                let absenList = [];
+                
+                for (let key in absensi) {
+                    if (absensi[key] && absensi[key][student.nama]) {
+                        const parts = key.split('_');
+                        const kId = parts[0] || '';
+                        const tanggal = parts[1] || '';
+                        const mapel = parts[2] || 'Umum';
+                        if (kId === kelasId || kelas.includes(kelas)) {
+                            absenList.push({
+                                tanggal: tanggal,
+                                mapel: mapel,
+                                status: absensi[key][student.nama]
+                            });
+                        }
+                    }
+                }
+                
+                absenList.sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+                
+                let html = `
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-history"></i> Riwayat Lengkap</h3>
+                            <span style="font-size:0.7rem;color:var(--text-secondary);">Total: ${absenList.length} absen</span>
+                        </div>
+                        <div style="max-height:400px;overflow-y:auto;">
+                `;
+                
+                if (absenList.length === 0) {
+                    html += `<p style="text-align:center;color:var(--text-secondary);padding:16px;font-size:0.85rem;">Belum ada riwayat absen</p>`;
+                } else {
+                    absenList.forEach(a => {
+                        const label = {
+                            hadir: '✅ Hadir',
+                            sakit: '🤒 Sakit',
+                            izin: '📋 Izin',
+                            alpa: '❌ Alpa',
+                            terlambat: '⏰ Terlambat'
+                        } [a.status] || a.status;
+                        html += `
+                            <div class="item-row">
+                                <span class="name"><i class="fas fa-calendar"></i> ${formatDate(a.tanggal)}</span>
+                                <div>
+                                    <span style="font-size:0.65rem;color:var(--text-secondary);margin-right:6px;">${a.mapel}</span>
+                                    <span style="font-weight:600;font-size:0.8rem;">${label}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                html += `
+                        </div>
+                        <div style="margin-top:10px;">
+                            <button class="btn btn-secondary btn-sm" id="exportRiwayatBtn"><i class="fas fa-download"></i> Export CSV</button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML = html;
+                
+                document.getElementById('exportRiwayatBtn')?.addEventListener('click', function() {
+                    try {
+                        let csv = 'Tanggal,Mapel,Status\n';
+                        absenList.forEach(a => {
+                            const label = {
+                                hadir: 'Hadir',
+                                sakit: 'Sakit',
+                                izin: 'Izin',
+                                alpa: 'Alpa',
+                                terlambat: 'Terlambat'
+                            } [a.status] || a.status;
+                            csv += `${formatDate(a.tanggal)},${a.mapel},${label}\n`;
+                        });
+                        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = `riwayat_${student.nama}.csv`;
+                        link.click();
+                        URL.revokeObjectURL(link.href);
+                        toast('✅ CSV berhasil diunduh!', 'success');
+                    } catch (e) { toast('⚠️ Gagal export', 'error'); }
+                });
+                
+            } catch (e) {
+                console.error('❌ renderRiwayat error:', e);
+                container.innerHTML = `<div class="card"><h3>Error</h3><p>${e.message}</p></div>`;
+            }
+        }
+        
+        // ============================================================
+        // SECTION 10: DAFTAR
+        // ============================================================
+        function renderDaftar(container) {
+            try {
+                const student = studentData?.student;
+                const verif = studentData?.verifikasi;
+                
+                if (student && student.verified) {
+                    container.innerHTML = `
+                        <div class="card">
+                            <h3><i class="fas fa-check-circle" style="color:var(--success);"></i> Sudah Terdaftar</h3>
+                            <p style="color:var(--text-secondary);">Anda sudah terdaftar sebagai siswa dan telah diverifikasi.</p>
+                            <div style="margin-top:10px;background:var(--bg-card);padding:12px;border-radius:var(--radius-sm);">
+                                <div><strong>Nama:</strong> ${student.nama}</div>
+                                <div><strong>Kelas:</strong> ${student.kelas}</div>
+                                <div><strong>Status:</strong> ✅ Terverifikasi</div>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                if (verif && verif.status === 'pending') {
+                    container.innerHTML = `
+                        <div class="card">
+                            <h3><i class="fas fa-clock" style="color:var(--warning);"></i> Menunggu Verifikasi</h3>
+                            <p style="color:var(--text-secondary);">Pendaftaran Anda sedang dalam proses verifikasi oleh admin.</p>
+                            <div style="margin-top:10px;background:var(--bg-card);padding:12px;border-radius:var(--radius-sm);">
+                                <div><strong>Nama:</strong> ${verif.nama}</div>
+                                <div><strong>Kelas:</strong> ${verif.kelas}</div>
+                                <div><strong>Status:</strong> ⏳ Menunggu Verifikasi</div>
+                                <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px;">Daftar pada: ${formatDate(verif.tanggal)}</div>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                if (verif && verif.status === 'rejected') {
+                    container.innerHTML = `
+                        <div class="card">
+                            <h3><i class="fas fa-times-circle" style="color:var(--danger);"></i> Pendaftaran Ditolak</h3>
+                            <p style="color:var(--danger);">Pendaftaran Anda ditolak oleh admin. Silakan hubungi admin untuk informasi lebih lanjut.</p>
+                            <button class="btn btn-warning btn-block" onclick="location.reload()">
+                                <i class="fas fa-redo"></i> Daftar Ulang
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const kelasData = data.kelas && data.kelas.length > 0 ? data.kelas : [
+                    { id: 'k1', nama: 'X IPA 1' },
+                    { id: 'k2', nama: 'X IPS 1' },
+                    { id: 'k3', nama: 'XI IPA 1' },
+                    { id: 'k4', nama: 'XI IPS 1' },
+                    { id: 'k5', nama: 'XII IPA 1' }
+                ];
+                
+                let html = `
+                    <div class="card">
+                        <h3><i class="fas fa-user-plus"></i> Pendaftaran Siswa</h3>
+                        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:10px;">
+                            Isi data berikut untuk mendaftar sebagai siswa. Admin akan memverifikasi pendaftaran Anda.
+                            <br><small>⚠️ Username dan Password akan digunakan untuk login.</small>
+                        </p>
+                        <form id="daftarForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-user"></i> Nama Lengkap</label>
+                                    <input type="text" id="daftarNama" placeholder="Nama lengkap" value="${currentUser?.displayName || ''}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-envelope"></i> Email</label>
+                                    <input type="email" id="daftarEmail" placeholder="Email" value="${currentUser?.email || ''}" required readonly style="background:var(--bg);opacity:0.7;">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-user-tag"></i> Username</label>
+                                    <input type="text" id="daftarUsername" placeholder="Buat username unik" required>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-lock"></i> Password</label>
+                                    <input type="password" id="daftarPassword" placeholder="Minimal 6 karakter" required minlength="6">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-id-card"></i> NISN</label>
+                                    <input type="text" id="daftarNisn" placeholder="NISN">
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-id-card"></i> NIK</label>
+                                    <input type="text" id="daftarNik" placeholder="NIK">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-building"></i> Kelas</label>
+                                    <select id="daftarKelas" required>
+                                        <option value="">Pilih Kelas</option>
+                                        ${kelasData.map(k => `<option value="${k.nama}">${k.nama}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-calendar"></i> Tanggal Lahir</label>
+                                    <input type="date" id="daftarTtl">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-map-marker-alt"></i> Alamat</label>
+                                <input type="text" id="daftarAlamat" placeholder="Alamat lengkap">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-users"></i> Nama Orang Tua</label>
+                                <input type="text" id="daftarOrtu" placeholder="Nama orang tua/wali">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-camera"></i> Foto (Opsional)</label>
+                                <input type="file" id="daftarFoto" accept="image/*">
+                                <div id="fotoPreview" style="text-align:center;margin-top:6px;"></div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i class="fas fa-paper-plane"></i> Kirim Pendaftaran
+                            </button>
+                        </form>
+                    </div>
+                `;
+                container.innerHTML = html;
+                
+                document.getElementById('daftarFoto')?.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    const preview = document.getElementById('fotoPreview');
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            preview.innerHTML = `
+                                <img src="${e.target.result}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--border);">
+                            `;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+                
+                document.getElementById('daftarForm')?.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    submitPendaftaran();
+                });
+                
+            } catch (e) {
+                console.error('❌ renderDaftar error:', e);
+                container.innerHTML = `<div class="card"><h3>Error</h3><p>${e.message}</p></div>`;
+            }
+        }
+        
+        function submitPendaftaran() {
+            try {
+                const nama = document.getElementById('daftarNama').value.trim();
+                const email = document.getElementById('daftarEmail').value.trim();
+                const username = document.getElementById('daftarUsername').value.trim();
+                const password = document.getElementById('daftarPassword').value;
+                const kelas = document.getElementById('daftarKelas').value;
+                const nisn = document.getElementById('daftarNisn').value.trim();
+                const nik = document.getElementById('daftarNik').value.trim();
+                const ttl = document.getElementById('daftarTtl').value;
+                const alamat = document.getElementById('daftarAlamat').value.trim();
+                const ortu = document.getElementById('daftarOrtu').value.trim();
+                const fotoInput = document.getElementById('daftarFoto');
+                
+                if (!nama || !email || !username || !password || !kelas) {
+                    toast('⚠️ Nama, Email, Username, Password, dan Kelas harus diisi!', 'warning');
+                    return;
+                }
+                if (password.length < 6) {
+                    toast('⚠️ Password minimal 6 karakter!', 'warning');
+                    return;
+                }
+                
+                const verifikasi = data.verifikasi || {};
+                for (let key in verifikasi) {
+                    if (verifikasi[key].username === username) {
+                        toast('⚠️ Username sudah digunakan!', 'warning');
+                        return;
+                    }
+                }
+                const students = data.students || {};
+                for (let key in students) {
+                    if (students[key].username === username) {
+                        toast('⚠️ Username sudah digunakan!', 'warning');
+                        return;
+                    }
+                }
+                
+                let photoData = '';
+                if (fotoInput.files && fotoInput.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        photoData = e.target.result;
+                        sendToVerifikasi(nama, email, username, password, kelas, nisn, nik, ttl, alamat, ortu, photoData);
+                    };
+                    reader.readAsDataURL(fotoInput.files[0]);
+                } else {
+                    sendToVerifikasi(nama, email, username, password, kelas, nisn, nik, ttl, alamat, ortu, '');
+                }
+                
+            } catch (e) {
+                toast('⚠️ Gagal mendaftar', 'error');
+                console.error(e);
+            }
+        }
+        
+        function sendToVerifikasi(nama, email, username, password, kelas, nisn, nik, ttl, alamat, ortu, photoData) {
+            try {
+                const id = 'v' + Date.now();
+                const hashedPassword = hashPassword(password);
+                
+                const dataPendaftaran = {
+                    id: id,
+                    nama: nama,
+                    email: email,
+                    username: username,
+                    password: hashedPassword,
+                    kelas: kelas,
+                    nisn: nisn,
+                    nik: nik,
+                    ttl: ttl,
+                    alamat: alamat,
+                    ortu: ortu,
+                    photo: photoData || '',
+                    tanggal: new Date().toISOString(),
+                    status: 'pending'
+                };
+                
+                if (firebaseDb) {
+                    firebaseDb.ref('sekolah/data/verifikasi/' + id).set(dataPendaftaran)
+                        .then(() => {
+                            toast('✅ Pendaftaran berhasil! Menunggu verifikasi admin.', 'success');
+                            if (!data.verifikasi) data.verifikasi = {};
+                            data.verifikasi[id] = dataPendaftaran;
+                            saveDataToLocal(data);
+                            studentData = {
+                                user: currentUser,
+                                student: null,
+                                verifikasi: dataPendaftaran
+                            };
+                            scheduleRender();
+                        })
+                        .catch((error) => {
+                            toast('⚠️ Gagal kirim verifikasi: ' + error.message, 'error');
+                        });
+                } else {
+                    if (!data.verifikasi) data.verifikasi = {};
+                    data.verifikasi[id] = dataPendaftaran;
+                    saveDataToLocal(data);
+                    toast('✅ Pendaftaran berhasil (offline mode)!', 'success');
+                    scheduleRender();
+                }
+            } catch (e) {
+                toast('⚠️ Gagal kirim pendaftaran: ' + e.message, 'error');
+                console.error(e);
+            }
+        }
+        
+        // ============================================================
+        // SECTION 11: PENGUMUMAN
+        // ============================================================
+        function renderPengumuman(container) {
+            try {
+                const pengumuman = data.pengumuman || [];
+                const student = studentData?.student;
+                const studentKelas = student?.kelas || '';
+                
+                let filtered = pengumuman.filter(p => {
+                    if (p.target === 'semua') return true;
+                    return p.target === studentKelas || p.target === getKelasId(studentKelas);
+                });
+                
+                filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                
+                let html = `
+                    <div class="card">
+                        <h3><i class="fas fa-bullhorn"></i> Pengumuman</h3>
+                        ${filtered.length === 0 ? '<p style="text-align:center;color:var(--text-secondary);padding:16px;font-size:0.85rem;">Belum ada pengumuman</p>' :
+                        filtered.map(p => `
+                            <div class="pengumuman-item">
+                                <div class="judul">📌 ${p.judul}</div>
+                                <div class="isi">${p.isi}</div>
+                                <div class="meta">
+                                    <span><i class="fas fa-calendar"></i> ${formatDate(p.createdAt)}</span>
+                                    <span><i class="fas fa-user"></i> ${p.dibuatOleh || 'Admin'}</span>
+                                    <span><i class="fas fa-bullseye"></i> ${p.target === 'semua' ? 'Semua Siswa' : getKelasNama(p.target)}</span>
+                                    <span style="color:${p.status === 'aktif' ? 'var(--success)' : 'var(--danger)'};">${p.status === 'aktif' ? '✅ Aktif' : '⏳ Kadaluarsa'}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                        <div style="margin-top:10px;font-size:0.7rem;color:var(--text-secondary);">
+                            Total: ${filtered.length} pengumuman
+                        </div>
+                    </div>
+                `;
+                container.innerHTML = html;
+            } catch (e) {
+                console.error('❌ renderPengumuman error:', e);
+                container.innerHTML = `<div class="card"><h3>Error</h3><p>${e.message}</p></div>`;
+            }
+        }
+        
+        // ============================================================
+        // SECTION 12: CATATAN SAYA
+        // ============================================================
+        function renderCatatanSaya(container) {
+            try {
+                const student = studentData?.student;
+                if (!student) {
+                    container.innerHTML = `
+                        <div class="card">
+                            <h3><i class="fas fa-sticky-note"></i> Catatan Saya</h3>
+                            <p style="color:var(--text-secondary);font-size:0.85rem;">Silakan daftar terlebih dahulu.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const key = `catatan_${student.nama}`;
+                const catatanData = data.catatan?.[key] || [];
+                const sorted = [...catatanData].reverse();
+                
+                let html = `
+                    <div class="card">
+                        <h3><i class="fas fa-sticky-note"></i> Catatan Untuk Saya</h3>
+                        <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:10px;">
+                            Catatan dari guru tentang performa dan perilaku Anda.
+                            <br><small>Total: ${sorted.length} catatan</small>
+                        </p>
+                        <div style="max-height:400px;overflow-y:auto;">
+                `;
+                
+                if (sorted.length === 0) {
+                    html += `<p style="text-align:center;color:var(--text-secondary);padding:16px;font-size:0.85rem;">Belum ada catatan</p>`;
+                } else {
+                    sorted.forEach(c => {
+                        html += `
+                            <div style="padding:8px 12px;margin-bottom:6px;background:var(--bg-card);border-radius:var(--radius-sm);border-left:4px solid ${c.jenis === 'baik' ? 'var(--success)' : 'var(--danger)'};">
+                                <div style="font-size:0.85rem;">${c.catatan}</div>
+                                <div style="font-size:0.6rem;color:var(--text-secondary);margin-top:4px;">
+                                    <i class="fas fa-user"></i> ${c.dibuatOleh || 'Guru'} 
+                                    <i class="fas fa-calendar" style="margin-left:8px;"></i> ${formatDate(c.waktu)} ${formatTime(c.waktu)}
+                                    ${c.jenis ? `<span style="margin-left:8px;padding:1px 8px;border-radius:40px;background:${c.jenis === 'baik' ? 'var(--success-light)' : 'var(--danger-light)'};color:${c.jenis === 'baik' ? 'var(--success)' : 'var(--danger)'};">${c.jenis === 'baik' ? '👍 Baik' : '⚠️ Perhatian'}</span>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+                container.innerHTML = html;
+            } catch (e) {
+                console.error('❌ renderCatatanSaya error:', e);
+                container.innerHTML = `<div class="card"><h3>Error</h3><p>${e.message}</p></div>`;
+            }
+        }
+        
+        // ============================================================
+        // SECTION 13: GENERATE QR - HANYA BERLAKU 1 HARI!
+        // ============================================================
+        function renderGenerateQR(container) {
+            try {
+                const student = studentData?.student;
+                if (!student || !student.verified) {
+                    container.innerHTML = `
+                        <div class="card">
+                            <h3><i class="fas fa-qrcode"></i> Generate QR</h3>
+                            <p style="color:var(--text-secondary);font-size:0.85rem;">
+                                ${!student ? 'Silakan daftar terlebih dahulu.' : 'Akun Anda belum diverifikasi oleh admin.'}
+                            </p>
+                            ${!student ? `<button class="btn btn-warning btn-block" onclick="document.querySelector('[data-tab=\\'daftar\\']').click()">
+                                <i class="fas fa-user-plus"></i> Daftar Sekarang
+                            </button>` : ''}
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const today = new Date().toISOString().split('T')[0];
+                const kelasId = getKelasId(student.kelas) || 'k1';
+                const mapel = data.currentMapel || 'Umum';
+                
+                // Cek apakah QR sudah digenerate hari ini
+                const qrKey = `qr_${student.nama}_${today}`;
+                const qrData = localStorage.getItem(qrKey);
+                const qrExpired = localStorage.getItem(qrKey + '_expired');
+                
+                let qrValid = false;
+                let qrText = '';
+                
+                if (qrData && qrExpired) {
+                    const expiredDate = new Date(qrExpired);
+                    const now = new Date();
+                    if (expiredDate > now) {
+                        qrValid = true;
+                        qrText = qrData;
+                    } else {
+                        localStorage.removeItem(qrKey);
+                        localStorage.removeItem(qrKey + '_expired');
+                    }
+                }
+                
+                let html = `
+                    <div class="card">
+                        <h3><i class="fas fa-qrcode"></i> Generate QR Code</h3>
+                        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:10px;">
+                            Generate QR Code untuk absen. QR hanya berlaku <strong>1 hari</strong> (sampai tengah malam).
+                            <br><small>QR akan kadaluarsa otomatis setelah hari berganti.</small>
+                        </p>
+                        
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+                            <div style="flex:1;min-width:150px;">
+                                <label style="font-size:0.7rem;color:var(--text-secondary);">Kelas</label>
+                                <input type="text" value="${student.kelas}" readonly style="width:100%;padding:6px 12px;border-radius:60px;border:1px solid var(--border);background:var(--bg);font-size:0.8rem;">
+                            </div>
+                            <div style="flex:1;min-width:150px;">
+                                <label style="font-size:0.7rem;color:var(--text-secondary);">Mata Pelajaran</label>
+                                <select id="generateMapelSelect" style="width:100%;padding:6px 12px;border-radius:60px;border:1px solid var(--border);background:var(--bg);font-size:0.8rem;">
+                                    ${data.kelas?.find(k => k.nama === student.kelas)?.mapel?.map(m => `<option value="${m}">${m}</option>`).join('') || '<option value="Umum">Umum</option>'}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary btn-block" id="generateQrSiswaBtn">
+                            <i class="fas fa-qrcode"></i> ${qrValid ? 'Regenerate QR' : 'Generate QR'}
+                        </button>
+                        
+                        <div style="margin-top:12px;">
+                            ${qrValid ? `
+                                <div style="background:var(--success-light);padding:8px 14px;border-radius:var(--radius-sm);color:var(--success);margin-bottom:10px;">
+                                    <i class="fas fa-check-circle"></i> QR aktif! Berlaku sampai hari ini.
+                                </div>
+                                <div class="qr-container" id="qrSiswaDisplay">
+                                    <div id="qrSiswaCanvas"></div>
+                                    <p style="margin-top:6px;font-size:0.7rem;color:var(--text-secondary);">
+                                        <i class="fas fa-info-circle"></i> Scan QR ini untuk absen
+                                    </p>
+                                    <button class="btn btn-secondary btn-sm" id="downloadQrSiswaBtn">
+                                        <i class="fas fa-download"></i> Download QR
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm" id="printQrSiswaBtn">
+                                        <i class="fas fa-print"></i> Print QR
+                                    </button>
+                                </div>
+                            ` : `
+                                <div style="background:var(--bg);padding:20px;border-radius:var(--radius-sm);text-align:center;color:var(--text-secondary);">
+                                    <i class="fas fa-qrcode" style="font-size:3rem;opacity:0.3;"></i>
+                                    <p style="margin-top:6px;">Klik "Generate QR" untuk membuat QR Code</p>
+                                </div>
+                            `}
+                        </div>
+                        
+                        <div style="margin-top:10px;font-size:0.7rem;color:var(--text-secondary);border-top:1px solid var(--border);padding-top:8px;">
+                            <i class="fas fa-clock"></i> QR berlaku sampai: <strong>${formatDate(today)} 23:59</strong>
+                            ${qrValid ? `<br><i class="fas fa-check-circle" style="color:var(--success);"></i> Status: <span style="color:var(--success);">AKTIF</span>` : `<br><i class="fas fa-circle" style="color:var(--danger);"></i> Status: <span style="color:var(--danger);">BELUM DIGENERATE</span>`}
+                        </div>
+                    </div>
+                `;
+                container.innerHTML = html;
+                
+                document.getElementById('generateQrSiswaBtn')?.addEventListener('click', function() {
+                    const mapel = document.getElementById('generateMapelSelect')?.value || 'Umum';
+                    const today = new Date().toISOString().split('T')[0];
+                    const kelasId = getKelasId(student.kelas) || 'k1';
+                    
+                    // Generate QR data
+                    const qrData = `${kelasId}_${mapel}_${today}`;
+                    const qrKey = `qr_${student.nama}_${today}`;
+                    
+                    // Simpan ke localStorage dengan expiry
+                    localStorage.setItem(qrKey, qrData);
+                    const expiry = new Date();
+                    expiry.setHours(23, 59, 59, 999);
+                    localStorage.setItem(qrKey + '_expired', expiry.toISOString());
+                    
+                    // Tampilkan QR
+                    const qrContainer = document.getElementById('qrSiswaDisplay');
+                    if (qrContainer && typeof QRCode !== 'undefined') {
+                        const canvasContainer = document.getElementById('qrSiswaCanvas');
+                        if (canvasContainer) {
+                            canvasContainer.innerHTML = '';
+                            qrCodeInstance = new QRCode(canvasContainer, {
+                                text: qrData,
+                                width: 160,
+                                height: 160,
+                                colorDark: '#1a3a6b',
+                                colorLight: '#ffffff',
+                                correctLevel: QRCode.CorrectLevel.H
+                            });
+                        }
+                        qrContainer.innerHTML += `
+                            <p style="margin-top:6px;font-size:0.7rem;color:var(--text-secondary);">
+                                <i class="fas fa-info-circle"></i> Scan QR ini untuk absen
+                            </p>
+                            <button class="btn btn-secondary btn-sm" id="downloadQrSiswaBtn">
+                                <i class="fas fa-download"></i> Download QR
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="printQrSiswaBtn">
+                                <i class="fas fa-print"></i> Print QR
+                            </button>
+                        `;
+                    }
+                    
+                    toast('✅ QR Code berhasil digenerate! Berlaku sampai hari ini.', 'success');
+                    scheduleRender();
+                });
+                
+                // Download QR
+                document.getElementById('downloadQrSiswaBtn')?.addEventListener('click', function() {
+                    const canvas = document.querySelector('#qrSiswaCanvas canvas');
+                    if (canvas) {
+                        const link = document.createElement('a');
+                        link.download = `QR_${student.nama}_${new Date().toISOString().split('T')[0]}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        toast('✅ QR diunduh', 'success');
+                    } else {
+                        toast('⚠️ Generate QR dulu!', 'warning');
+                    }
+                });
+                
+                // Print QR
+                document.getElementById('printQrSiswaBtn')?.addEventListener('click', function() {
+                    const canvas = document.querySelector('#qrSiswaCanvas canvas');
+                    if (canvas) {
+                        const printWindow = window.open('', '_blank');
+                        if (printWindow) {
+                            printWindow.document.write(`
+                                <html>
+                                <head><title>QR Absen</title>
+                                <style>body{text-align:center;padding:20px;font-family:Arial;background:white;}</style>
+                                </head>
+                                <body>
+                                    <img src="${canvas.toDataURL('image/png')}" style="width:300px;height:300px;">
+                                    <p style="margin-top:10px;color:#666;font-size:12px;">${student.nama} - ${student.kelas}</p>
+                                    <p style="color:#666;font-size:11px;">${formatDate(new Date().toISOString().split('T')[0])}</p>
+                                </body>
+                                </html>
+                            `);
+                            printWindow.document.close();
+                            printWindow.print();
+                        }
+                    } else {
+                        toast('⚠️ Generate QR dulu!', 'warning');
+                    }
+                });
+                
+            } catch (e) {
+                console.error('❌ renderGenerateQR error:', e);
+                container.innerHTML = `<div class="card"><h3>Error</h3><p>${e.message}</p></div>`;
+            }
+        }
+        
+        // ============================================================
+        // SECTION 14: PROFIL
+        // ============================================================
+        function renderProfil(container) {
+            try {
+                const student = studentData?.student;
+                const verif = studentData?.verifikasi;
+                const user = currentUser;
+                
+                let statusText = 'Belum terdaftar';
+                let statusClass = 'pending';
+                let statusIcon = '⏳';
+                let statusColor = 'var(--warning)';
+                
+                if (student) {
+                    if (student.verified) {
+                        statusText = '✅ Terverifikasi';
+                        statusClass = 'approved';
+                        statusIcon = '✅';
+                        statusColor = 'var(--success)';
+                    } else {
+                        statusText = '⏳ Menunggu Verifikasi';
+                        statusClass = 'pending';
+                        statusIcon = '⏳';
+                        statusColor = 'var(--warning)';
+                    }
+                } else if (verif) {
+                    if (verif.status === 'pending') {
+                        statusText = '⏳ Menunggu Verifikasi Admin';
+                        statusClass = 'pending';
+                        statusIcon = '⏳';
+                        statusColor = 'var(--warning)';
+                    } else if (verif.status === 'approved') {
+                        statusText = '✅ Terverifikasi';
+                        statusClass = 'approved';
+                        statusIcon = '✅';
+                        statusColor = 'var(--success)';
+                    } else if (verif.status === 'rejected') {
+                        statusText = '❌ Ditolak';
+                        statusClass = 'rejected';
+                        statusIcon = '❌';
+                        statusColor = 'var(--danger)';
+                    }
+                }
+                
+                const displayName = student?.nama || verif?.nama || user?.displayName || 'Siswa';
+                const displayKelas = student?.kelas || verif?.kelas || '-';
+                const displayUsername = student?.username || verif?.username || '-';
+                const displayNisn = student?.nisn || verif?.nisn || '-';
+                const displayNik = student?.nik || verif?.nik || '-';
+                const displayEmail = student?.email || verif?.email || user?.email || '-';
+                const displayTtl = student?.ttl || verif?.ttl || '-';
+                const displayAlamat = student?.alamat || verif?.alamat || '-';
+                const displayOrtu = student?.ortu || verif?.ortu || '-';
+                
+                const photoUrl = student?.photo || verif?.photo || user?.photoURL || '';
+                
+                let html = `
+                    <div class="card">
+                        <h3><i class="fas fa-user"></i> Profil Saya</h3>
+                        <div style="text-align:center;margin-bottom:14px;">
+                            <div class="avatar" style="width:90px;height:90px;border-radius:50%;margin:0 auto;background:linear-gradient(135deg,var(--primary),var(--primary-light));display:flex;align-items:center;justify-content:center;font-size:2.6rem;color:white;overflow:hidden;border:3px solid var(--border);">
+                                ${photoUrl ? `<img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;">` : getInitials(displayName)}
+                            </div>
+                            <h2 style="margin-top:6px;font-size:1.2rem;">${displayName}</h2>
+                            <span class="verif-status ${statusClass}">${statusIcon} ${statusText}</span>
+                        </div>
+                        
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:0.8rem;">
+                            <div style="background:var(--bg-card);padding:8px 12px;border-radius:var(--radius-sm);">
+                                <div style="font-size:0.6rem;color:var(--text-secondary);">Username</div>
+                                <div style="font-weight:600;">${displayUsername}</div>
+                            </div>
+                            <div style="background:var(--bg-card);padding:8px 12px;border-radius:var(--radius-sm);">
+                                <div style="font-size:0.6rem;color:var(--text-secondary);">Kelas</div>
+                                <div style="font-weight:600;">${displayKelas}</div>
+                            </div>
+                            <div style="background:var(--bg-card);padding:8px 12px;border-radius:var(--radius-sm);">
+                                <div style="font-size:0.6rem;color:var(--text-secondary);">NISN</div>
+                                <div style="font-weight:600;">${displayNisn}</div>
+                            </div>
+                            <div style="background:var(--bg-card);padding:8px 12px;border-radius:var(--radius-sm);">
+                                <div style="font-size:0.6rem;color:var(--text-secondary);">NIK</div>
+                                <div style="font-weight:600;">${displayNik}</div>
+                            </div>
+                            <div style="grid-column:span 2;background:var(--bg-card);padding:8px 12px;border-radius:var(--radius-sm);">
+                                <div style="font-size:0.6rem;color:var(--text-secondary);">Email</div>
+                                <div style="font-weight:600;">${displayEmail}</div>
+                            </div>
+                            <div style="grid-column:span 2;background:var(--bg-card);padding:8px 12px;border-radius:var(--radius-sm);">
+                                <div style="font-size:0.6rem;color:var(--text-secondary);">Tanggal Lahir</div>
+                                <div style="font-weight:600;">${displayTtl}</div>
+                            </div>
+                            <div style="grid-column:span 2;background:var(--bg-card);padding:8px 12px;border-radius:var(--radius-sm);">
+                                <div style="font-size:0.6rem;color:var(--text-secondary);">Alamat</div>
+                                <div style="font-weight:600;">${displayAlamat}</div>
+                            </div>
+                            <div style="grid-column:span 2;background:var(--bg-card);padding:8px 12px;border-radius:var(--radius-sm);">
+                                <div style="font-size:0.6rem;color:var(--text-secondary);">Orang Tua</div>
+                                <div style="font-weight:600;">${displayOrtu}</div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top:10px;">
+                            <button class="btn btn-secondary btn-sm" onclick="document.querySelector('[data-tab=\\'gantipassword\\']').click()">
+                                <i class="fas fa-key"></i> Ganti Password
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML = html;
+            } catch (e) {
+                console.error('❌ renderProfil error:', e);
+                container.innerHTML = `<div class="card"><h3>Error</h3><p>${e.message}</p></div>`;
+            }
+        }
+        
+        // ============================================================
+        // SECTION 15: GANTI PASSWORD
+        // ============================================================
+        function renderGantiPassword(container) {
+            try {
+                const student = studentData?.student || studentData?.verifikasi;
+                if (!student) {
+                    container.innerHTML = `
+                        <div class="card">
+                            <h3><i class="fas fa-key"></i> Ganti Password</h3>
+                            <p style="color:var(--text-secondary);font-size:0.85rem;">Anda belum terdaftar. Silakan daftar terlebih dahulu.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = `
+                    <div class="card">
+                        <h3><i class="fas fa-key"></i> Ganti Password</h3>
+                        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:10px;">
+                            Ganti password akun Anda. Password minimal 6 karakter.
+                        </p>
+                        <div class="form-group">
+                            <label>Password Lama</label>
+                            <input type="password" id="oldPassGanti" placeholder="Password lama">
+                        </div>
+                        <div class="form-group">
+                            <label>Password Baru</label>
+                            <input type="password" id="newPassGanti" placeholder="Password baru (min 6 karakter)">
+                        </div>
+                        <div class="form-group">
+                            <label>Konfirmasi Password Baru</label>
+                            <input type="password" id="confirmPassGanti" placeholder="Konfirmasi password baru">
+                        </div>
+                        <button class="btn btn-primary btn-block" id="savePassGantiBtn"><i class="fas fa-save"></i> Simpan Password</button>
+                    </div>
+                `;
+                container.innerHTML = html;
+                
+                document.getElementById('savePassGantiBtn')?.addEventListener('click', function() {
+                    try {
+                        const oldPass = document.getElementById('oldPassGanti').value;
+                        const newPass = document.getElementById('newPassGanti').value;
+                        const confirmPass = document.getElementById('confirmPassGanti').value;
+                        const student = studentData?.student || studentData?.verifikasi;
+                        
+                        if (!oldPass || !newPass || !confirmPass) {
+                            toast('⚠️ Semua field harus diisi!', 'warning');
+                            return;
+                        }
+                        if (newPass.length < 6) {
+                            toast('⚠️ Password minimal 6 karakter!', 'warning');
+                            return;
+                        }
+                        if (newPass !== confirmPass) {
+                            toast('⚠️ Password baru dan konfirmasi tidak cocok!', 'warning');
+                            return;
+                        }
+                        if (!student || !student.id) {
+                            toast('⚠️ User tidak ditemukan!', 'error');
+                            return;
+                        }
+                        
+                        const hashedOld = hashPassword(oldPass);
+                        if (student.password !== hashedOld) {
+                            toast('⚠️ Password lama salah!', 'error');
+                            return;
+                        }
+                        
+                        const hashedNew = hashPassword(newPass);
+                        
+                        if (data.verifikasi && data.verifikasi[student.id]) {
+                            data.verifikasi[student.id].password = hashedNew;
+                            if (firebaseDb) {
+                                firebaseDb.ref('sekolah/data/verifikasi/' + student.id + '/password').set(hashedNew);
+                            }
+                        }
+                        if (data.students && data.students[student.id]) {
+                            data.students[student.id].password = hashedNew;
+                            if (firebaseDb) {
+                                firebaseDb.ref('sekolah/data/students/' + student.id + '/password').set(hashedNew);
+                            }
+                        }
+                        
+                        saveDataToLocal(data);
+                        toast('✅ Password berhasil diubah!', 'success');
+                        document.getElementById('oldPassGanti').value = '';
+                        document.getElementById('newPassGanti').value = '';
+                        document.getElementById('confirmPassGanti').value = '';
+                        scheduleRender();
+                    } catch (e) {
+                        toast('⚠️ Gagal ganti password', 'error');
+                        console.error(e);
+                    }
+                });
+                
+            } catch (e) {
+                console.error('❌ renderGantiPassword error:', e);
+                container.innerHTML = `<div class="card"><h3>Error</h3><p>${e.message}</p></div>`;
+            }
+        }
+        
+        // ============================================================
+        // SECTION 16: PROFIL SEKOLAH
+        // ============================================================
+        function renderProfilSekolah(container) {
+            try {
+                const ps = data.profilSekolah || getDefaultData().profilSekolah;
+                const gallery = ps.gallery || [
+                    'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&h=300&fit=crop',
+                    'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=400&h=300&fit=crop',
+                    'https://images.unsplash.com/photo-1580870069867-74c57ee2b9a4?w=400&h=300&fit=crop',
+                    'https://images.unsplash.com/photo-1523050854058-8df90110c7f1?w=400&h=300&fit=crop'
+                ];
+                const videoUrl = ps.video || 'https://www.youtube.com/embed/pMPnz2fCSFU';
+                
+                let html = `
+                    <div class="card">
+                        <h3><i class="fas fa-school"></i> Profil Sekolah</h3>
+                        <img src="${ps.foto || 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&h=300&fit=crop'}" 
+                             class="sekolah-photo" 
+                             onerror="this.src='https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&h=300&fit=crop'">
+                        
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;">
+                            <div style="grid-column:span 2;">
+                                <span style="font-size:0.6rem;color:var(--text-secondary);">Nama Sekolah</span>
+                                <div style="font-weight:700;font-size:1rem;">${ps.nama}</div>
+                            </div>
+                            <div>
+                                <span style="font-size:0.6rem;color:var(--text-secondary);">Akreditasi</span>
+                                <div style="font-weight:600;font-size:0.85rem;">${ps.akreditasi || 'A'}</div>
+                            </div>
+                            <div>
+                                <span style="font-size:0.6rem;color:var(--text-secondary);">Tahun Berdiri</span>
+                                <div style="font-weight:600;font-size:0.85rem;">${ps.tahunBerdiri || '1998'}</div>
+                            </div>
+                            <div style="grid-column:span 2;">
+                                <span style="font-size:0.6rem;color:var(--text-secondary);">Alamat</span>
+                                <div style="font-weight:600;font-size:0.85rem;">${ps.alamat}</div>
+                            </div>
+                            <div>
+                                <span style="font-size:0.6rem;color:var(--text-secondary);">Telepon</span>
+                                <div style="font-weight:600;font-size:0.85rem;">${ps.telepon}</div>
+                            </div>
+                            <div>
+                                <span style="font-size:0.6rem;color:var(--text-secondary);">Email</span>
+                                <div style="font-weight:600;font-size:0.85rem;">${ps.email}</div>
+                            </div>
+                            <div style="grid-column:span 2;">
+                                <span style="font-size:0.6rem;color:var(--text-secondary);">Website</span>
+                                <div style="font-weight:600;font-size:0.85rem;">${ps.website}</div>
+                            </div>
+                            <div style="grid-column:span 2;">
+                                <span style="font-size:0.6rem;color:var(--text-secondary);">Kepala Sekolah</span>
+                                <div style="font-weight:600;font-size:0.85rem;">${ps.kepalaSekolah || 'Dr. H. Ahmad, M.Pd'}</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Video YouTube -->
+                        <div style="margin-top:10px;">
+                            <h4 style="font-size:0.85rem;margin-bottom:4px;"><i class="fab fa-youtube" style="color:#ff0000;"></i> Video Profil Sekolah</h4>
+                            <iframe class="sekolah-video" src="${videoUrl}" 
+                                    title="Video Profil Sekolah" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen>
+                            </iframe>
+                        </div>
+                        
+                        <!-- Galeri Foto -->
+                        <div style="margin-top:10px;">
+                            <h4 style="font-size:0.85rem;margin-bottom:4px;"><i class="fas fa-images"></i> Galeri Foto</h4>
+                            <div class="sekolah-gallery">
+                                ${gallery.map(img => `
+                                    <img src="${img}" alt="Foto Sekolah" onclick="window.open('${img}','_blank')" style="cursor:pointer;">
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div class="visi-misi">
+                            <h4>Visi</h4>
+                            <p>${ps.visi || 'Menciptakan generasi unggul, berkarakter, dan berdaya saing global'}</p>
+                        </div>
+                        <div class="visi-misi">
+                            <h4>Misi</h4>
+                            ${(ps.misi || ['Meningkatkan kualitas pembelajaran', 'Membangun karakter siswa', 'Mengembangkan potensi siswa']).map(m => `<p>• ${m}</p>`).join('')}
+                        </div>
+                    </div>
+                `;
+                container.innerHTML = html;
+            } catch (e) {
+                console.error('❌ renderProfilSekolah error:', e);
+                container.innerHTML = `<div class="card"><h3>Error</h3><p>${e.message}</p></div>`;
+            }
+        }
+        
+        // ============================================================
+        // SECTION 17: TENTANG
+        // ============================================================
+        function renderTentang(container) {
+            container.innerHTML = `
+                <div class="card">
+                    <h3><i class="fas fa-info-circle"></i> Tentang Aplikasi</h3>
+                    <div style="text-align:center;padding:6px;">
+                        <i class="fas fa-graduation-cap" style="font-size:2.4rem;color:var(--primary-light);"></i>
+                        <h2 style="margin:4px 0;font-size:1.2rem;">AbsenSekolah</h2>
+                        <p style="color:var(--text-secondary);font-size:0.8rem;">Sistem Absensi Sekolah Modern & Terintegrasi</p>
+                        <div style="margin-top:8px;display:grid;gap:2px;font-size:0.8rem;">
+                            <div><strong>Versi:</strong> 1.0 Beta</div>
+                            <div><strong>Developer:</strong> AbsenSekolah Team</div>
+                            <div><strong>Database:</strong> Firebase Realtime</div>
+                            <div><strong>Platform:</strong> Web Siswa</div>
+                        </div>
+                        <div style="margin-top:8px;font-size:0.65rem;color:var(--text-secondary);">
+                            © 2026 AbsenSekolah. All rights reserved.
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // ============================================================
+        // SECTION 18: NAVIGATION
+        // ============================================================
+        document.querySelectorAll('.sidebar .menu-item[data-tab]').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.sidebar .menu-item[data-tab]').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById('greetingTitle').textContent = this.textContent.trim();
+                scheduleRender();
+                document.getElementById('sidebar').classList.remove('open');
+                document.getElementById('sidebarOverlay').classList.remove('active');
+            });
+        });
+        
+        document.getElementById('sidebarToggle')?.addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        });
+        document.getElementById('sidebarOverlay')?.addEventListener('click', function() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        });
+        
+        // ============================================================
+        // SECTION 19: LOGIN
+        // ============================================================
+        function loginManual() {
+            try {
+                const username = document.getElementById('loginUsername').value.trim();
+                const password = document.getElementById('loginPassword').value;
+                
+                if (!username || !password) {
+                    toast('⚠️ Username dan password harus diisi!', 'warning');
+                    return;
+                }
+                
+                const verifikasi = data.verifikasi || {};
+                let foundUser = null;
+                let foundId = null;
+                
+                for (let key in verifikasi) {
+                    if (verifikasi[key].username === username && verifikasi[key].status === 'approved') {
+                        foundUser = verifikasi[key];
+                        foundId = key;
+                        break;
+                    }
+                }
+                
+                if (!foundUser) {
+                    const students = data.students || {};
+                    for (let key in students) {
+                        if (students[key].username === username && students[key].verified === true) {
+                            foundUser = students[key];
+                            foundId = key;
+                            break;
+                        }
+                    }
+                }
+                
+                if (!foundUser) {
+                    for (let key in verifikasi) {
+                        if (verifikasi[key].username === username && verifikasi[key].status === 'pending') {
+                            toast('⏳ Akun Anda sedang menunggu verifikasi admin!', 'warning');
+                            return;
+                        }
+                    }
+                    toast('⚠️ Username tidak ditemukan!', 'error');
+                    return;
+                }
+                
+                const hashedPassword = hashPassword(password);
+                if (foundUser.password !== hashedPassword) {
+                    toast('⚠️ Password salah!', 'error');
+                    return;
+                }
+                
+                studentData = {
+                    user: currentUser,
+                    student: foundUser,
+                    verifikasi: null
+                };
+                
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainContent').style.display = 'block';
+                document.getElementById('sidebar').style.display = 'flex';
+                scheduleRender();
+                toast(`👋 Selamat datang ${foundUser.nama}`, 'success');
+                
+            } catch (e) {
+                toast('⚠️ Gagal login', 'error');
+                console.error(e);
+            }
+        }
+        
+        document.getElementById('loginBtn').addEventListener('click', loginManual);
+        document.getElementById('loginUsername').addEventListener('keydown', e => { if (e.key === 'Enter') loginManual(); });
+        document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') loginManual(); });
+        document.getElementById('googleRegisterBtn').addEventListener('click', loginWithGoogle);
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        
+        // ============================================================
+        // SECTION 20: DARK MODE
+        // ============================================================
+        let darkMode = localStorage.getItem('absenSiswaDark') === 'true';
+        if (darkMode) document.body.classList.add('dark-mode');
+        document.getElementById('darkModeToggle')?.addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            darkMode = document.body.classList.contains('dark-mode');
+            localStorage.setItem('absenSiswaDark', darkMode);
+            document.querySelector('#darkModeToggle span').textContent = darkMode ? 'Terang' : 'Gelap';
+            toast(`Mode ${darkMode ? 'Gelap' : 'Terang'}`, 'info');
+        });
+        document.querySelector('#darkModeToggle span').textContent = darkMode ? 'Terang' : 'Gelap';
+        
+        // ============================================================
+        // SECTION 21: REFRESH
+        // ============================================================
+        document.getElementById('refreshBtn')?.addEventListener('click', function() {
+            data = loadDataFromLocal();
+            if (currentUser) loadStudentData(currentUser);
+            scheduleRender();
+            toast('🔄 Data di-refresh!', 'success');
+        });
+        
+        // ============================================================
+        // SECTION 22: STUDENT DETAIL MODAL
+        // ============================================================
+        window.showStudentDetail = function(nama) {
+            try {
+                let studentData = null;
+                for (let key in data.students) {
+                    if (data.students[key].nama === nama) {
+                        studentData = data.students[key];
+                        break;
+                    }
+                }
+                if (!studentData) {
+                    toast('⚠️ Data siswa tidak ditemukan', 'warning');
+                    return;
+                }
+                
+                const modal = document.getElementById('studentModal');
+                document.getElementById('studentModalContent').innerHTML = `
+                    <h3 style="text-align:center;margin-bottom:10px;">📋 Detail Siswa</h3>
+                    <img src="${studentData.photo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(studentData.nama) + '&size=80&background=1a3a6b&color=fff'}" 
+                         class="student-photo" 
+                         onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(studentData.nama)}&size=80&background=1a3a6b&color=fff'">
+                    <div style="text-align:center;font-size:1.05rem;font-weight:700;margin-bottom:8px;">${studentData.nama}</div>
+                    <div class="student-detail">
+                        <div><span class="label">NISN</span><div class="value">${studentData.nisn || '-'}</div></div>
+                        <div><span class="label">NIK</span><div class="value">${studentData.nik || '-'}</div></div>
+                        <div><span class="label">Kelas</span><div class="value">${studentData.kelas || '-'}</div></div>
+                        <div><span class="label">TTL</span><div class="value">${studentData.ttl || '-'}</div></div>
+                        <div><span class="label">Email</span><div class="value">${studentData.email || '-'}</div></div>
+                        <div><span class="label">Status</span><div class="value">${studentData.verified ? '✅ Terverifikasi' : '⏳ Belum Verifikasi'}</div></div>
+                        <div style="grid-column:span 2;"><span class="label">Alamat</span><div class="value">${studentData.alamat || '-'}</div></div>
+                        <div style="grid-column:span 2;"><span class="label">Orang Tua</span><div class="value">${studentData.ortu || '-'}</div></div>
+                    </div>
+                `;
+                modal.classList.remove('hidden');
+            } catch (e) {
+                toast('⚠️ Gagal menampilkan detail', 'error');
+                console.error(e);
+            }
+        };
+        
+        document.getElementById('closeStudentModal')?.addEventListener('click', () => {
+            document.getElementById('studentModal').classList.add('hidden');
+        });
+        document.getElementById('studentModal')?.addEventListener('click', function(e) {
+            if (e.target === this) this.classList.add('hidden');
+        });
+        
+        // ============================================================
+        // SECTION 23: INIT
+        // ============================================================
+        data = loadDataFromLocal();
+        try {
+            const firebaseOk = initFirebase();
+            if (firebaseAuth && firebaseAuth.currentUser) {
+                // Auth state listener will handle
+            } else {
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('mainContent').style.display = 'none';
+                document.getElementById('sidebar').style.display = 'none';
+            }
+        } catch (e) {
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('sidebar').style.display = 'none';
+            console.error('❌ Init error:', e);
+        }
+        
+        console.log('🎓 AbsenSekolah v1.0 Beta - Web Siswa Loaded!');
+        console.log('📊 Data:', Object.keys(data).length, 'keys');
+        console.log('🔥 Firebase:', firebaseConnected ? '✅ Online' : '⚠️ Offline');
+        console.log('📱 Sidebar Kiri: ✅ Aktif');
+        console.log('🔲 Generate QR: ✅ Hanya berlaku 1 hari');
+        console.log('✅ Sinkronisasi dengan Web Utama: ✅ Aktif (MERGE)');
+    </script>
+    
+</body>
+</html>
